@@ -10,7 +10,7 @@ To checkout
 git clone https://github.com/sw-pachanady/SamruddhiApp
 git pull
 
-chage some files
+change some files
 
 git commit -m "Change in trade logic"
 git push origin branchName (master)
