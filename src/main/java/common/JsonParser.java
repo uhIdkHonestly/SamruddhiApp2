@@ -1,4 +1,4 @@
-package com.samruddhi.trading.equities.com.samruddhi.trading.equities.common;
+package common;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
