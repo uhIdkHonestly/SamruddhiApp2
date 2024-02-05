@@ -1,27 +1,33 @@
 package com.samruddhi.trading.equities.services;
 
-import com.samruddhi.trading.equities.services.base.MarketDataService;
 import com.samruddhi.trading.equities.domain.Bar;
+import com.samruddhi.trading.equities.services.base.MarketDataService;
+import common.JsonParser;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.time.Duration;
-import java.time.temporal.ChronoUnit;
-import java.util.List;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
+import java.util.Collections;
+import java.util.List;
 
 public class MarketDataServiceImpl implements MarketDataService {
 
-    private final String MARKET_DATA_URL = "https://api.tradestation.com/v3/marketdata/barcharts/%s?interval=%s&barsback=%s&sessiontemplate=Default";
+    private static final Logger logger = LoggerFactory.getLogger(MarketDataServiceImpl.class);
+    private String TIME_UNIT_CANDLE = "Daily";
+
+    private final String MARKET_DATA_URL = "https://api.tradestation.com/v3/marketdata/barcharts/%s?interval=%s&unit=%s&barsback=%s&sessiontemplate=Default";
 
     @Override
     public List<Bar> getStockDataBars(String ticker) throws Exception {
         // Replace with your actual API token
-        String  token = TradeStationAuthImpl.getInstance().getAccessToken().get();
+        String token = TradeStationAuthImpl.getInstance().getAccessToken().get();
 
-        // API endpoint URL
-        String apiUrl = "";
+        String apiUrl = String.format(MARKET_DATA_URL, ticker, 1, TIME_UNIT_CANDLE, 2);
 
         // Create an HttpClient with a custom header for Authorization
         HttpClient httpClient = HttpClient.newBuilder()
@@ -43,15 +49,16 @@ public class MarketDataServiceImpl implements MarketDataService {
             if (response.statusCode() == 200) {
                 // Parse the JSON response
                 String responseBody = response.body();
-                System.out.println("Response JSON:");
-                System.out.println(responseBody);
+                logger.info("Response JSON:");
+                logger.info(responseBody);
+                return JsonParser.getListOfBars(responseBody, "bars");
             } else {
                 System.err.println("Error: HTTP status code " + response.statusCode());
             }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
-        // TO DO
-        return null;
+        return Collections.emptyList();
     }
 }

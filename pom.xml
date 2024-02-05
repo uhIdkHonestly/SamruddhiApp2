@@ -15,6 +15,20 @@
     </properties>
 
     <dependencies>
+        <!-- SLF4J API -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.32</version> <!-- Use the latest version -->
+        </dependency>
+
+        <!-- Log4j 2 (an implementation of SLF4J) -->
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-slf4j-impl</artifactId>
+            <version>2.14.1</version> <!-- Use the latest version -->
+        </dependency>
+
         <!-- Apache HttpClient -->
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>

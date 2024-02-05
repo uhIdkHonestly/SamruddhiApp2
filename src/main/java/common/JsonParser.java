@@ -30,7 +30,7 @@ public class JsonParser {
         return tagValue;
     }
 
-    public List<Bar> getListOfBars(String jsonString, String key) {
+    public static List<Bar> getListOfBars(String jsonString, String key) {
         List<Bar> bars = Collections.emptyList();
         try {
             // Create an ObjectMapper
