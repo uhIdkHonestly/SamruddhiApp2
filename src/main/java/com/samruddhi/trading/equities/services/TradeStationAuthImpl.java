@@ -1,7 +1,7 @@
-package com.samruddhi.trading.equities.core;
+package com.samruddhi.trading.equities.services;
 
 import common.JsonParser;
-import com.samruddhi.trading.equities.core.base.Authenticator;
+import com.samruddhi.trading.equities.services.base.Authenticator;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;

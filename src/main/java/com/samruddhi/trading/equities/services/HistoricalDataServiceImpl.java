@@ -1,11 +1,10 @@
-package com.samruddhi.trading.equities.core;
+package com.samruddhi.trading.equities.services;
 
-import com.samruddhi.trading.equities.core.base.HistoricalDataService;
+import com.samruddhi.trading.equities.services.base.HistoricalDataService;
 
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.Base64;
 
 public class HistoricalDataServiceImpl implements HistoricalDataService {
 

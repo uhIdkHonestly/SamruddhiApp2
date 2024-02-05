@@ -1,6 +1,6 @@
-package com.samruddhi.trading.equities.core;
+package com.samruddhi.trading.equities.services;
 
-import com.samruddhi.trading.equities.core.base.MarketDataService;
+import com.samruddhi.trading.equities.services.base.MarketDataService;
 import com.samruddhi.trading.equities.domain.Bar;
 
 import java.time.Duration;
@@ -10,8 +10,6 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 
 public class MarketDataServiceImpl implements MarketDataService {
 

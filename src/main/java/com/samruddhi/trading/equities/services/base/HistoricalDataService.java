@@ -1,4 +1,4 @@
-package com.samruddhi.trading.equities.core.base;
+package com.samruddhi.trading.equities.services.base;
 
 import java.io.IOException;
 
