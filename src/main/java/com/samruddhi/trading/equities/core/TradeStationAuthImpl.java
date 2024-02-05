@@ -81,7 +81,7 @@ public class TradeStationAuthImpl implements Authenticator {
             System.out.println("Response: " + jsonResponse);
 
             // TODO: Extract the access token from the response and use it to make authenticated requests to the API
-            accessTokenMayBe = JsonParser.getJsonValue(jsonResponse, ACCESS_TOKEN);
+            accessTokenMayBe = JsonParser.getJsonTagValue(jsonResponse, ACCESS_TOKEN);
 
         } catch (Exception e) {
             e.printStackTrace();
