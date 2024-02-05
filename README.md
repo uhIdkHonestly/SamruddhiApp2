@@ -5,9 +5,22 @@ This runs from 9.30 AM to % PM EST
 To Do Link with a Trading Api such as TrzadeStation
 **
 
+To checkout
+```
+git clone https://github.com/sw-pachanady/SamruddhiApp
+git pull
 
+chage some files
 
+git commit -m "Change in trade logic"
+git push origin branchName (master)
+
+to rebase with main in remote 
+
+git checkout branchname
+git pull --rebase origin main
+```
 
 ### Copyright 2024-2025 All righta reserved
-### Authors Ramesh Pachanady
+### Authors:    Ramesh Pachanady
 ###             Aarav Pachanady
