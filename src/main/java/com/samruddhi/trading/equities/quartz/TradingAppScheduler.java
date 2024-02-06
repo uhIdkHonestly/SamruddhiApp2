@@ -16,7 +16,7 @@ public class TradingAppScheduler {
 
     public void startJob() throws SchedulerException {
         JobDetail job = JobBuilder.newJob(TradingApp.class)
-                .withIdentity("myJob", "group1")
+                .withIdentity("tradingApp", "group1")
                 .build();
 
         // Trigger the job to run at 9 AM EST
