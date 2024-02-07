@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TradeWorkerStatus {
-    String status;
+
+    private String status;
+
     List<FinishedTrade> dailyTrades = new ArrayList<>();
 
     public TradeWorkerStatus(String status) {

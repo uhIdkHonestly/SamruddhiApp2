@@ -18,16 +18,29 @@ import java.util.List;
 public class MarketDataServiceImpl implements MarketDataService {
 
     private static final Logger logger = LoggerFactory.getLogger(MarketDataServiceImpl.class);
-    private String TIME_UNIT_CANDLE = "Daily";
+
+    public String TIME_UNIT_MINUTE = "Minute";
+    public String TIME_UNIT_DAILY = "Daily";
 
     private final String MARKET_DATA_URL = "https://api.tradestation.com/v3/marketdata/barcharts/%s?interval=%s&unit=%s&barsback=%s&sessiontemplate=Default";
 
+    /** For daily and minute chart please pass for  min -
+     * 1, TIME_UNIT_MINUTE, 2
+     * 1, TIME_UNIT_DAILY, 5, 13, 50
+     *
+     * @param ticker
+     * @param durationType
+     * @param duration
+     * @param barsBack
+     * @return
+     * @throws Exception
+     */
     @Override
-    public List<Bar> getStockDataBars(String ticker) throws Exception {
+    public List<Bar> getStockDataBars(String ticker, String durationType, int duration, int barsBack) throws Exception {
         // Replace with your actual API token
         String token = TradeStationAuthImpl.getInstance().getAccessToken().get();
 
-        String apiUrl = String.format(MARKET_DATA_URL, ticker, 1, TIME_UNIT_CANDLE, 2);
+        String apiUrl = String.format(MARKET_DATA_URL, ticker, 1, TIME_UNIT_DAILY, 2);
 
         // Create an HttpClient with a custom header for Authorization
         HttpClient httpClient = HttpClient.newBuilder()

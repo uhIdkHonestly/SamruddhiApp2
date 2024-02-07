@@ -3,6 +3,7 @@ package core;
 import com.samruddhi.trading.equities.domain.Ticker;
 import com.samruddhi.trading.equities.domain.TradeWorkerStatus;
 import com.samruddhi.trading.equities.logic.TradeWorker;
+import com.samruddhi.trading.equities.services.MarketDataServiceImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,8 +49,8 @@ public class TradingEngine {
             Set<Ticker> tickers = tickertMaster.getTickersForTheDay();
 
             executor = Executors.newFixedThreadPool(Math.min(tickers.size(), MAX_THREADS));
-            List<TradeWorker> workers = tickers.stream().map(ticker -> new TradeWorker()).collect(Collectors.toList());
-            tradeWorkerFutures =   executor.invokeAll(workers);
+            List<TradeWorker> workers = tickers.stream().map(ticker -> new TradeWorker(new MarketDataServiceImpl())).collect(Collectors.toList());
+            tradeWorkerFutures = executor.invokeAll(workers);
 
         } catch (InterruptedException e) {
             logger.error("Error starting TradeEngine {}", e.getMessage());

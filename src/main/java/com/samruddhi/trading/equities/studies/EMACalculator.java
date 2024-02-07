@@ -15,6 +15,9 @@ import java.util.concurrent.TimeUnit;
 
 
 public class EMACalculator {
+
+
+    /**
     public void calculateEMAs() {
         // Replace with your actual API token
         String token = "YOUR_API_TOKEN";
@@ -58,9 +61,16 @@ public class EMACalculator {
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
+    } */
 
-    private static double calculateEMAs(List<Bar> bars) {
+    /** The bars will have upto 50 days, use parameter duration to pick 5, 9, 50 days
+     *
+     * @param bars
+     * @param duration
+     * @return
+     */
+
+    public static double calculateEMAs(List<Bar> bars, int duration) {
         // Implement EMA calculation logic for 5, 13, and 50 periods using the historical data
         // You can use a library like Apache Commons Math or implement it manually
         // Here's a simplified example of calculating a 5-period EMA:
@@ -68,8 +78,12 @@ public class EMACalculator {
         double multiplier5 = 2.0 / (emaPeriod5 + 1);
         double ema5 = 0.0;
 
-        int i = 0;
-        for (Bar bar : bars) {
+        int start = bars.size() - duration;
+        if(start < 0)
+            throw new IllegalArgumentException("start index must be positive");
+
+        for (int i = start; i < bars.size(); i++) {
+            Bar bar = bars.get(i);
             double closePrice = Double.valueOf(bar.getClose());
             if (i == 0) {
                 ema5 = closePrice;
@@ -78,9 +92,8 @@ public class EMACalculator {
             }
             i++;
             // Display or use ema5 as needed
-            System.out.println("EMA(5) for date " + bar.getTimeStamp() + ": " + ema5);
+            System.out.println(String.format("EMA(%s) for date %s is %s", duration, bar.getTimeStamp(), ema5));
         }
-
         // Implement genrically similar calculations for 13 and 50 EMAs
 
         return ema5;

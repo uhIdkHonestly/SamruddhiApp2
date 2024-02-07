@@ -6,5 +6,5 @@ import java.util.List;
 
 public interface MarketDataService {
 
-    public List<Bar> getStockDataBars(String ticker) throws Exception;
+    public List<Bar> getStockDataBars(String ticker, String durationType, int duration, int barsBack) throws Exception;
 }
