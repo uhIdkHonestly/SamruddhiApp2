@@ -49,7 +49,7 @@ public class TradingEngine {
             Set<Ticker> tickers = tickertMaster.getTickersForTheDay();
 
             executor = Executors.newFixedThreadPool(Math.min(tickers.size(), MAX_THREADS));
-            List<TradeWorker> workers = tickers.stream().map(ticker -> new TradeWorker(new MarketDataServiceImpl())).collect(Collectors.toList());
+            List<TradeWorker> workers = tickers.stream().map(ticker -> new TradeWorker(new MarketDataServiceImpl(), ticker.getName())).collect(Collectors.toList());
             tradeWorkerFutures = executor.invokeAll(workers);
 
         } catch (InterruptedException e) {
