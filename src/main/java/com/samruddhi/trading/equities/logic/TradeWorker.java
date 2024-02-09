@@ -3,17 +3,22 @@ package com.samruddhi.trading.equities.logic;
 //import static com.samruddhi.trading.equities.services.MarketDataServiceImpl.TIME_UNIT_MINUTE;
 //import static com.samruddhi.trading.equities.services.MarketDataServiceImpl.TIME_UNIT_DAILY;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
 import com.samruddhi.trading.equities.domain.Bar;
 import com.samruddhi.trading.equities.domain.TradeWorkerStatus;
 import com.samruddhi.trading.equities.services.base.MarketDataService;
 import com.samruddhi.trading.equities.studies.EMACalculator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.samruddhi.trading.equities.studies.MACDCalculator;
+import com.samruddhi.trading.equities.studies.RSICalculator;
 
-import java.time.LocalTime;
-import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.TimeUnit;
 
 public class TradeWorker implements Callable<TradeWorkerStatus> {
 
@@ -21,55 +26,33 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
         UPTREND, DOWNTREND, CALL_HELD, PUT_HELD, NO_STATUS;
     }
 
-    private static class PreviousEmas {
-        double ema5day;
-        double ema13day;
-        double ema50day;
-
-        public PreviousEmas(double ema5day, double ema13day, double ema50day) {
-            this.ema5day = ema5day;
-            this.ema13day = ema13day;
-            this.ema50day = ema50day;
-        }
-    }
-
-    private static class CurrentActiveTrade {
-        String ticker;
-        String optionTicker;
-        // Quantity of calls and puts bought
-        int quantity;
-        double pricePerCall;
-        double totalPrice;
-        LocalTime tradeTime;
-
-        public CurrentActiveTrade(String ticker, String optionTicker, int quantity, double pricePerCall, double totalPrice, LocalTime tradeTime) {
-            this.ticker = ticker;
-            this.optionTicker = optionTicker;
-            this.quantity = quantity;
-            this.pricePerCall = pricePerCall;
-            this.totalPrice = totalPrice;
-            this.tradeTime = tradeTime;
-        }
-    }
-
     private static final Logger logger = LoggerFactory.getLogger(com.samruddhi.trading.equities.logic.TradeWorker.class);
 
     private boolean isTerminated = false;
     private MarketDataService marketDataService;
     private String ticker;
-    /** Holds all the Bars since a buy or Call or Put is initiated until Sold */
+    /**
+     * Holds all the Bars since a buy or Call or Put is initiated until Sold
+     */
     private List<Bar> barsSincePurchase;
 
-    /** Holds all the Bars in the last 3 intervals (3 minutes) to see a green uptrend or a red downtrend */
-    private List<Bar> barsInTrend;
+    /**
+     * Holds all the Bars in the last 3 intervals (3 minutes) to see a green uptrend or a red downtrend
+     */
+    private List<Bar> barsInCurrentTrend;
 
-    /** just the last minute's EMAs*/
+    /**
+     * just the last minute's EMAs
+     */
     private PreviousEmas previousEmas;
 
-
+    private CurrentStatus currentStatus;
 
     public TradeWorker(MarketDataService marketDataService, String ticker) {
         this.marketDataService = marketDataService;
+        this.barsSincePurchase = new ArrayList<>();
+        this.barsInCurrentTrend = new ArrayList<>();
+        this.currentStatus = currentStatus;
     }
 
     public void triggerTermination() {
@@ -88,24 +71,17 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
 
                     // get daily minute data , tick - 2 (just last 2)
                     // marketDataService.getStockDataBars(1, MarketDataServiceImpl.TIME_UNIT_MINUTE, 2);
-                    List<Bar> minuteBars = marketDataService.getStockDataBars(ticker,  "Minute", 1, 2);
+                    List<Bar> minuteBars = marketDataService.getStockDataBars(ticker, "Minute", 1, 2);
 
-                    List<Bar> dailyBars = marketDataService.getStockDataBars(ticker,  "Daily", 1, 50);
+                    List<Bar> dailyBars = marketDataService.getStockDataBars(ticker, "Daily", 1, 50);
 
-
-                    double ema5 = EMACalculator.calculateEMAs(dailyBars, 5);
-                    double ema13 = EMACalculator.calculateEMAs(dailyBars, 13);
-                    double ema50 = EMACalculator.calculateEMAs(dailyBars, 50);
-
-                    // do the math
-                    // get 50 day daily data for 50 days
-                    if(ema5 > ema50 && ema5 > ema13 ) {
-                        // check if first time
-                        boolean isBuyPastMinute = previousEmas.ema5day > previousEmas.ema50day && previousEmas.ema5day > previousEmas.ema13day;
-                        // Validate RSI and MACD  and VWAP
-                        // Initiate an Option buy order at -1 $ or -2 Dollar in the money
+                    switch (currentStatus) {
+                        case NO_STATUS, UPTREND, DOWNTREND -> checkAndPlaceOrder(minuteBars, dailyBars);
+                        case CALL_HELD -> determineCallSellPoint(minuteBars, dailyBars);
+                        case PUT_HELD -> determinePutsSellPoint(minuteBars, dailyBars);
                     }
-                    // Sleep for 1/2 minute
+
+                    // Sleep for 1/2 minute,
                     TimeUnit.MILLISECONDS.sleep(500);
                 } catch (InterruptedException e) {
                     logger.info("Task interrupted.");
@@ -117,5 +93,49 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
             }
         }
         return null;
+    }
+
+    private void checkAndPlaceOrder(List<Bar> minuteBars, List<Bar> dailyBars) {
+        double ema5 = EMACalculator.calculateEMAs(dailyBars, 5);
+        double ema13 = EMACalculator.calculateEMAs(dailyBars, 13);
+        double ema50 = EMACalculator.calculateEMAs(dailyBars, 50);
+
+        // calculate and validate MACD
+        List<Bar> bars26Days = dailyBars.subList(24, dailyBars.size());
+        double[] macd = MACDCalculator.computeMACD(bars26Days, 12, 26, 9);
+        boolean isMacdBullish = MACDCalculator.isMACDTrendBullish(macd[0], macd[1]);
+
+        // Validate RSI and VWAP,
+        double rsi = RSICalculator.calculateRSI(dailyBars.subList(36, dailyBars.size()), 14);
+        boolean isRsiBullish = rsi > 40; // Fix me
+
+        if (ema5 > ema50 && ema5 > ema13 && previousEmas != null) {
+            // Probable Buy call scenario
+            currentStatus = CurrentStatus.UPTREND;
+            // check if first time
+            boolean isBuyCallBasedOnPastMinute = previousEmas.ema5day > previousEmas.ema50day && previousEmas.ema5day > previousEmas.ema13day;
+
+
+            // Initiate an Option buy order if all criteria met
+            if (isBuyCallBasedOnPastMinute && isMacdBullish && isRsiBullish) {
+                // initiateCallBuying()
+            }
+        } else if (ema5 < ema50 && ema5 < ema13 && previousEmas != null) {
+            // Probable Buy put scenario
+            currentStatus = CurrentStatus.DOWNTREND;
+            // check if first time
+            boolean isSellPutBasedOnPastMinute = previousEmas.ema5day < previousEmas.ema50day && previousEmas.ema5day < previousEmas.ema13day;
+            if (isSellPutBasedOnPastMinute && !isMacdBullish && !isRsiBullish) {
+                // initiatePutBuying()
+            }
+        }
+    }
+
+    private void determineCallSellPoint(List<Bar> minuteBars, List<Bar> dailyBars) {
+
+    }
+
+    private void determinePutsSellPoint(List<Bar> minuteBars, List<Bar> dailyBars) {
+
     }
 }

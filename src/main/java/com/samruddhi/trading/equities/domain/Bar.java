@@ -43,6 +43,12 @@ public class Bar{
     @JsonProperty("BarStatus")
     public String barStatus;
 
+    public Bar(double price) {
+      this.closeNumeric = closeNumeric;
+    }
+
+    public double closeNumeric = 0.0;
+
     public String getHigh() {
         return high;
     }
@@ -63,12 +69,14 @@ public class Bar{
         return open;
     }
 
-    public void setOpen(String open) {
+   public void setOpen(String open) {
         this.open = open;
     }
 
-    public String getClose() {
-        return close;
+    public double getClose() {
+        if(closeNumeric == 0.0)
+            closeNumeric = Double.parseDouble(close);
+        return closeNumeric;
     }
 
     public void setClose(String close) {

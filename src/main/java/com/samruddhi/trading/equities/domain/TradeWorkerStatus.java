@@ -28,4 +28,8 @@ public class TradeWorkerStatus {
     public void setDailyTrades(List<FinishedTrade> dailyTrades) {
         this.dailyTrades = dailyTrades;
     }
+
+    public void addFinishedTrade(FinishedTrade finishedTrade) {
+        dailyTrades.add(finishedTrade);
+    }
 }
