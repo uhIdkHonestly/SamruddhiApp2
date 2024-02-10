@@ -48,11 +48,14 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
 
     private CurrentStatus currentStatus;
 
+    private TradeWorkerStatus tradeWorkerStatus;
+
     public TradeWorker(MarketDataService marketDataService, String ticker) {
         this.marketDataService = marketDataService;
         this.barsSincePurchase = new ArrayList<>();
         this.barsInCurrentTrend = new ArrayList<>();
         this.currentStatus = currentStatus;
+        this.tradeWorkerStatus = tradeWorkerStatus;
     }
 
     public void triggerTermination() {
@@ -65,14 +68,12 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
         while (!isTerminated) {
             while (!Thread.currentThread().isInterrupted()) {
                 try {
-                    //String quotes = fetchQuotes(); // Simulate fetching quotes
-                    //String result = processQuotes(quotes); // Process the quotes
-                    //System.out.println("Processed result: " + result);
 
-                    // get daily minute data , tick - 2 (just last 2)
+                    // get  minute stock data , tick - 2 (just last 2) using the stock ticker
                     // marketDataService.getStockDataBars(1, MarketDataServiceImpl.TIME_UNIT_MINUTE, 2);
                     List<Bar> minuteBars = marketDataService.getStockDataBars(ticker, "Minute", 1, 2);
 
+                    // get  daily stock data for past 50 days
                     List<Bar> dailyBars = marketDataService.getStockDataBars(ticker, "Daily", 1, 50);
 
                     switch (currentStatus) {
@@ -96,6 +97,7 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
     }
 
     private void checkAndPlaceOrder(List<Bar> minuteBars, List<Bar> dailyBars) {
+
         double ema5 = EMACalculator.calculateEMAs(dailyBars, 5);
         double ema13 = EMACalculator.calculateEMAs(dailyBars, 13);
         double ema50 = EMACalculator.calculateEMAs(dailyBars, 50);
@@ -129,6 +131,10 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
                 // initiatePutBuying()
             }
         }
+    }
+
+    private void determineOptionTicker(String ticker) {
+
     }
 
     private void determineCallSellPoint(List<Bar> minuteBars, List<Bar> dailyBars) {
