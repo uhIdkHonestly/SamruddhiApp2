@@ -120,7 +120,7 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
 
             // Initiate an Option buy order if all criteria met
             if (isBuyCallBasedOnPastMinute && isMacdBullish && isRsiBullish) {
-                // initiateCallBuying()
+                initiateCallorPutBuying(ticker, dailyBars.get(dailyBars.size()-1).getClose(), 'C');
             }
         } else if (ema5 < ema50 && ema5 < ema13 && previousEmas != null) {
             // Probable Buy put scenario
@@ -128,13 +128,21 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
             // check if first time
             boolean isSellPutBasedOnPastMinute = previousEmas.ema5day < previousEmas.ema50day && previousEmas.ema5day < previousEmas.ema13day;
             if (isSellPutBasedOnPastMinute && !isMacdBullish && !isRsiBullish) {
-                // initiatePutBuying()
+                //initiatePutBuying(ticker, price);
+                initiateCallorPutBuying(ticker, dailyBars.get(dailyBars.size()-1).getClose(), 'P');
             }
         }
     }
 
-    private void determineOptionTicker(String ticker) {
-
+    /** 1) determine option ticker
+     *  2) get Bid / Ask and limit we want to place
+     *  3) Place Order for desired Option quantity (say 2 to 5)
+     *  4) track status
+     *
+     * @param ticker
+     */
+    private void initiateCallorPutBuying(String ticker, double price, char callOrPut) {
+        String optionTicker = OptionTickerProvider.getNextOptionTicker(ticker,  price,  callOrPut);
     }
 
     private void determineCallSellPoint(List<Bar> minuteBars, List<Bar> dailyBars) {

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.samruddhi.trading.equities.domain.Bar;
+import com.samruddhi.trading.equities.domain.OptionData;
 
 import java.util.Collections;
 import java.util.List;
@@ -43,5 +44,16 @@ public class JsonParser {
             e.printStackTrace();
         }
         return bars;
+    }
+
+    public static OptionData getOptionQuote(String optionJsonString) throws JsonProcessingException {
+        OptionData optionData = null;
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            optionData = mapper.readValue(optionJsonString, OptionData.class);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        return optionData;
     }
 }

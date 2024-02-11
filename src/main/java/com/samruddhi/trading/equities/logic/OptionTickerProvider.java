@@ -37,8 +37,16 @@ public class OptionTickerProvider {
 
     private static final DateTimeFormatter dateformatddMMyyyy = DateTimeFormatter.ofPattern("yyMMdd");
 
-    public static String getNextOptionTicker(String ticker, double price) {
+    public static String getNextOptionTicker(String ticker, double price, char callOrPut) {
         String nextExpiryDate = OptionExpryPeriod.hasDailyOptions(ticker) ? getToday() : getNextFriday();
+        String zeroPaddedPrice = NumberFormatHelper.formatOptionStrike(OptionTickerProvider.nextStrikePrice(ticker, price, 0));
+
+        StringBuilder tickerSb = new StringBuilder(zeroPaddedPrice);
+        tickerSb.append(nextExpiryDate);
+        tickerSb.append(callOrPut);
+        tickerSb.append(zeroPaddedPrice);
+
+        return tickerSb.toString();
     }
 
     static String getToday() {
@@ -68,9 +76,10 @@ public class OptionTickerProvider {
      * @param offset
      * @return
      */
-    public double nextStrikePrice(String ticker, double price, int offset) {
+    public static double nextStrikePrice(String ticker, double price, int offset) {
         double floorPrice = 0;
-        // ETF
+
+        // ETFs are rounded down to the nearest number, other logic based on Pricing needs fixing
         if (OptionExpryPeriod.hasDailyOptions(ticker)) {
             floorPrice = (int) Math.floor(price);
         } else {
