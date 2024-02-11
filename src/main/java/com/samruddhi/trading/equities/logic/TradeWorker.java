@@ -6,8 +6,8 @@ package com.samruddhi.trading.equities.logic;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.concurrent.TimeUnit;
 
+import com.samruddhi.trading.equities.logic.base.OptionOrderProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,12 +50,15 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
 
     private TradeWorkerStatus tradeWorkerStatus;
 
+    private OptionOrderProcessor optionOrderProcessor;
+
     public TradeWorker(MarketDataService marketDataService, String ticker) {
         this.marketDataService = marketDataService;
         this.barsSincePurchase = new ArrayList<>();
         this.barsInCurrentTrend = new ArrayList<>();
         this.currentStatus = currentStatus;
         this.tradeWorkerStatus = tradeWorkerStatus;
+        this.optionOrderProcessor = new com.samruddhi.trading.equities.logic.OptionOrderProcessorImpl();
     }
 
     public void triggerTermination() {
@@ -82,8 +85,9 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
                         case PUT_HELD -> determinePutsSellPoint(minuteBars, dailyBars);
                     }
 
-                    // Sleep for 1/2 minute,
-                    TimeUnit.MILLISECONDS.sleep(500);
+                    // Sleep for 1/2 minute, some import issue in J 21
+                    //TimeUnit.MILLISECONDS.sleep(500);
+                    Thread.sleep(500);
                 } catch (InterruptedException e) {
                     logger.info("Task interrupted.");
                     Thread.currentThread().interrupt(); // Preserve interrupt status
@@ -143,6 +147,10 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
      */
     private void initiateCallorPutBuying(String ticker, double price, char callOrPut) {
         String optionTicker = OptionTickerProvider.getNextOptionTicker(ticker,  price,  callOrPut);
+        switch(callOrPut) {
+            case 'C' -> optionOrderProcessor.processCallBuyOrder();
+            case 'P' -> optionOrderProcessor.processPutBuyOrder();
+        }
     }
 
     private void determineCallSellPoint(List<Bar> minuteBars, List<Bar> dailyBars) {
