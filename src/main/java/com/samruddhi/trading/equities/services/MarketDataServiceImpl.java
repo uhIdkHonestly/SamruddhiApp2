@@ -41,23 +41,9 @@ public class MarketDataServiceImpl implements MarketDataService {
         String token = TradeStationAuthImpl.getInstance().getAccessToken().get();
 
         String apiUrl = String.format(MARKET_DATA_URL, ticker, 1, TIME_UNIT_DAILY, 2);
-
-        // Create an HttpClient with a custom header for Authorization
-        HttpClient httpClient = HttpClient.newBuilder()
-                .connectTimeout(Duration.of(30, ChronoUnit.MINUTES))
-                .build();
-
-        // Create the HTTP request with the Authorization header
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(apiUrl))
-                .header("Authorization", "Bearer " + token)
-                .GET()
-                .build();
-
         try {
-            // Send the HTTP request and get the response
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
+            HttpResponse<String> response = createHttpRequest(apiUrl, token);
             // Check if the response status code is 200 (OK)
             if (response.statusCode() == 200) {
                 // Parse the JSON response
@@ -73,5 +59,23 @@ public class MarketDataServiceImpl implements MarketDataService {
             e.printStackTrace();
         }
         return Collections.emptyList();
+    }
+
+    private HttpResponse<String> createHttpRequest(String apiUrl, String token) throws Exception {
+
+        // Create an HttpClient with a custom header for Authorization
+        HttpClient httpClient = HttpClient.newBuilder()
+                .connectTimeout(Duration.of(30, ChronoUnit.MINUTES))
+                .build();
+
+        // Create the HTTP request with the Authorization header
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(apiUrl))
+                .header("Authorization", "Bearer " + token)
+                .GET()
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        return response;
     }
 }

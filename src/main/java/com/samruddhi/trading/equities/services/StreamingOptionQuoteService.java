@@ -1,5 +1,8 @@
-package com.samruddhi.trading.equities.logic;
+package com.samruddhi.trading.equities.services;
 
+
+import com.samruddhi.trading.equities.domain.OptionData;
+import common.JsonParser;
 
 import java.io.InputStream;
 import java.net.URI;
@@ -8,13 +11,15 @@ import java.net.URI;
         import java.net.http.HttpResponse;
         import java.io.IOException;
 
-public class StreamingOptionChainsHandler {
+public class StreamingOptionQuoteService {
 
     private static final HttpClient httpClient = HttpClient.newHttpClient();
 
-    public static void readStream(String url) {
+    public static OptionData getOptionQuote(String url, String ticker, String optionStrike) {
+        OptionData optionData = null;
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(url))
+
                 .header("Accept", "application/vnd.tradestation.streams.v2+json")
                 .build();
 
@@ -27,11 +32,12 @@ public class StreamingOptionChainsHandler {
             try (InputStream stream = response.body()) {
                 // Process the stream continuously
                 String optionResponsejson = buildResponseJson(stream);
-
+                optionData = JsonParser.getOptionQuote(optionResponsejson);
             }
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
+        return optionData;
     }
 
     private static String buildResponseJson(java.io.InputStream stream) throws IOException {
@@ -48,8 +54,8 @@ public class StreamingOptionChainsHandler {
     }
 
     public static void main(String[] args) {
-        String url = "https://api.tradestation.com/v3/marketdata/stream/options/chains/{underlying}";
+        String url = "https://api.tradestation.com/v3/marketdata/stream/options/quotes?legs%5B0%5D.Symbol=";
         // Replace {underlying} with the actual underlying symbol you're interested in
-        readStream(url);
+        getOptionQuote(url, "MSFT", "500");
     }
 }

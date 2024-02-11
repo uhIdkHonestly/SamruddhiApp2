@@ -56,7 +56,6 @@ public class OptionTickerProvider {
 
     static String getNextFriday() {
         LocalDate today = LocalDate.now();
-        //today.with(TemporalAdjusters.next(DayOfWeek.FRIDAY));
         LocalDate updatedDate = today.with(TemporalAdjusters.next(DayOfWeek.FRIDAY));
         return dateformatddMMyyyy.format(updatedDate);
     }
