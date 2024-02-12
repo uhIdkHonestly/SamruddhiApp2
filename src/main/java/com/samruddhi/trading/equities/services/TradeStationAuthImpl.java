@@ -55,7 +55,7 @@ public class TradeStationAuthImpl implements Authenticator {
         return instance;
     }
 
-
+    @Override
     public Optional<String> getAccessToken() throws IOException {
         Optional<String> accessTokenMayBe = Optional.empty();
         try {
@@ -87,5 +87,13 @@ public class TradeStationAuthImpl implements Authenticator {
             e.printStackTrace();
         }
         return accessTokenMayBe;
+    }
+
+    @Override
+    /** return the API key we get from TradeStation
+     *
+     */
+    public String getApiKey()  {
+        return "acklsdkadkkadadladda";
     }
 }

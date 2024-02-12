@@ -1,6 +1,8 @@
 package com.samruddhi.trading.equities.logic;
 
 
+import com.samruddhi.trading.equities.domain.NextStrikePrice;
+
 import java.text.SimpleDateFormat;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -37,16 +39,20 @@ public class OptionTickerProvider {
 
     private static final DateTimeFormatter dateformatddMMyyyy = DateTimeFormatter.ofPattern("yyMMdd");
 
-    public static String getNextOptionTicker(String ticker, double price, char callOrPut) {
-        String nextExpiryDate = OptionExpryPeriod.hasDailyOptions(ticker) ? getToday() : getNextFriday();
+    public static NextStrikePrice getNextOptionTicker(String ticker, double price, char callOrPut) {
+        String nextExpiryDate = OptionExpiryPeriod.hasDailyOptions(ticker) ? getToday() : getNextFriday();
         String zeroPaddedPrice = NumberFormatHelper.formatOptionStrike(OptionTickerProvider.nextStrikePrice(ticker, price, 0));
 
-        StringBuilder tickerSb = new StringBuilder(zeroPaddedPrice);
-        tickerSb.append(nextExpiryDate);
-        tickerSb.append(callOrPut);
-        tickerSb.append(zeroPaddedPrice);
+        StringBuilder fulltickerSb = new StringBuilder(zeroPaddedPrice);
+        fulltickerSb.append(nextExpiryDate);
+        fulltickerSb.append(callOrPut);
+        fulltickerSb.append(zeroPaddedPrice);
 
-        return tickerSb.toString();
+        StringBuilder tickerWithDateSb = new StringBuilder(zeroPaddedPrice);
+        tickerWithDateSb.append(nextExpiryDate);
+        tickerWithDateSb.append(callOrPut);
+
+        return new NextStrikePrice(fulltickerSb.toString(), tickerWithDateSb.toString());
     }
 
     static String getToday() {
@@ -79,7 +85,7 @@ public class OptionTickerProvider {
         double floorPrice = 0;
 
         // ETFs are rounded down to the nearest number, other logic based on Pricing needs fixing
-        if (OptionExpryPeriod.hasDailyOptions(ticker)) {
+        if (OptionExpiryPeriod.hasDailyOptions(ticker)) {
             floorPrice = (int) Math.floor(price);
         } else {
             int priceInt = (int) Math.floor(price);

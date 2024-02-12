@@ -7,7 +7,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 
+import com.samruddhi.trading.equities.domain.NextStrikePrice;
 import com.samruddhi.trading.equities.logic.base.OptionOrderProcessor;
+import com.samruddhi.trading.equities.services.StreamingOptionQuoteServiceImpl;
+import com.samruddhi.trading.equities.services.base.StreamingOptionQuoteService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,13 +55,16 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
 
     private OptionOrderProcessor optionOrderProcessor;
 
+    private StreamingOptionQuoteService streamingOptionQuoteService;
+
     public TradeWorker(MarketDataService marketDataService, String ticker) {
         this.marketDataService = marketDataService;
         this.barsSincePurchase = new ArrayList<>();
         this.barsInCurrentTrend = new ArrayList<>();
         this.currentStatus = currentStatus;
         this.tradeWorkerStatus = tradeWorkerStatus;
-        this.optionOrderProcessor = new com.samruddhi.trading.equities.logic.OptionOrderProcessorImpl();
+        this.streamingOptionQuoteService = new StreamingOptionQuoteServiceImpl();
+        this.optionOrderProcessor = new OptionOrderProcessorImpl();
     }
 
     public void triggerTermination() {
@@ -146,10 +152,10 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
      * @param ticker
      */
     private void initiateCallorPutBuying(String ticker, double price, char callOrPut) {
-        String optionTicker = OptionTickerProvider.getNextOptionTicker(ticker,  price,  callOrPut);
+        NextStrikePrice  nextStrikePrice = OptionTickerProvider.getNextOptionTicker(ticker,  price,  callOrPut);
         switch(callOrPut) {
-            case 'C' -> optionOrderProcessor.processCallBuyOrder();
-            case 'P' -> optionOrderProcessor.processPutBuyOrder();
+            case 'C' -> optionOrderProcessor.processCallBuyOrder(nextStrikePrice, ticker, price);
+            case 'P' -> optionOrderProcessor.processPutBuyOrder(nextStrikePrice, ticker, price);
         }
     }
 

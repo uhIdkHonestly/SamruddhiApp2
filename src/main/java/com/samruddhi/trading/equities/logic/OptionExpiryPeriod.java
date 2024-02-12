@@ -2,7 +2,7 @@ package com.samruddhi.trading.equities.logic;
 
 import java.util.Set;
 
-public class OptionExpryPeriod {
+public class OptionExpiryPeriod {
 
     private static Set<String> dailyExpiryOptionsTickers = Set.of("SPY", "QQQ");
 
@@ -10,3 +10,4 @@ public class OptionExpryPeriod {
         return dailyExpiryOptionsTickers.contains(ticker);
     }
 }
+
