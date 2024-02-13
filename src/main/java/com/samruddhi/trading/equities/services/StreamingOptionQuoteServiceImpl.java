@@ -26,7 +26,7 @@ public class StreamingOptionQuoteServiceImpl implements StreamingOptionQuoteServ
 
     public StreamingOptionQuoteServiceImpl() {
 
-        apiKey = TradeStationAuthImpl.getInstance().getApiKey();
+        apiKey = TradeStationAuthImpl.getInstance().getAccessToken().get();
     }
 
     @Override

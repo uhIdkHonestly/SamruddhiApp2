@@ -6,7 +6,7 @@ import java.util.Optional;
 public interface Authenticator {
 
     /** For authenticating users with redirect to a ULR */
-    Optional<String> getAccessToken() throws IOException;
+    Optional<String> getAccessToken();
 
     String getApiKey();
 }

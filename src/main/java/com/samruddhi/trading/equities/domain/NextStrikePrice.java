@@ -4,9 +4,12 @@ public class NextStrikePrice {
     String fullOptionTicker;
     String dateWithStrike;
 
-    public NextStrikePrice(String fullOptionTicker, String dateWithStrike) {
+    String underlying;
+
+    public NextStrikePrice(String fullOptionTicker, String dateWithStrike, String underlying) {
         this.fullOptionTicker = fullOptionTicker;
         this.dateWithStrike = dateWithStrike;
+        this.underlying = underlying;
     }
 
     public String getFullOptionTicker() {

@@ -52,7 +52,7 @@ public class OptionTickerProvider {
         tickerWithDateSb.append(nextExpiryDate);
         tickerWithDateSb.append(callOrPut);
 
-        return new NextStrikePrice(fulltickerSb.toString(), tickerWithDateSb.toString());
+        return new NextStrikePrice(fulltickerSb.toString(), tickerWithDateSb.toString(), ticker);
     }
 
     static String getToday() {

@@ -1,15 +1,17 @@
 package com.samruddhi.trading.equities.services;
 
-import common.JsonParser;
 import com.samruddhi.trading.equities.services.base.Authenticator;
-import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.util.EntityUtils;
+import common.JsonParser;
+
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.net.http.HttpResponse.BodyHandlers;
+import java.net.http.HttpTimeoutException;
+import java.time.Duration;
+import java.util.Base64;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -37,11 +39,9 @@ import java.util.Optional;
  */
 public class TradeStationAuthImpl implements Authenticator {
     private static final String ACCESS_TOKEN = "access_token";
-    private static final String CLIENT_ID = "YOUR_CLIENT_ID";
-    private static final String CLIENT_SECRET = "YOUR_CLIENT_SECRET";
-    private static final String REDIRECT_URI = "YOUR_REDIRECT_URI";
-    private static final String AUTH_URL = "https://api.tradestation.com/v2/security/authorize";
-    private static final String TOKEN_URL = "https://api.tradestation.com/v2/security/token";
+    private static final String CLIENT_ID = "your_client_id";
+    private static final String CLIENT_SECRET = "your_client_secret";
+    private static final String TOKEN_ENDPOINT = "https://api.radestation.com/oauth/token";
 
     private static Authenticator instance;
 
@@ -56,44 +56,44 @@ public class TradeStationAuthImpl implements Authenticator {
     }
 
     @Override
-    public Optional<String> getAccessToken() throws IOException {
+    public Optional<String> getAccessToken() {
         Optional<String> accessTokenMayBe = Optional.empty();
         try {
-            HttpClient httpClient = HttpClients.createDefault();
+            HttpClient client = HttpClient.newHttpClient();
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(TOKEN_ENDPOINT))
+                    .header("Authorization", basicAuthHeader())
+                    .POST(HttpRequest.BodyPublishers.ofString("grant_type=client_credentials"))
+                    .timeout(Duration.ofSeconds(10)) // Set a timeout for the request
+                    .build();
 
-            // Prepare the POST request for the access token
-            HttpPost httpPost = new HttpPost(TOKEN_URL);
 
-            // Add the required parameters
-            List<NameValuePair> params = new ArrayList<>();
-            params.add(new BasicNameValuePair("grant_type", "authorization_code"));
-            params.add(new BasicNameValuePair("code", "AUTHORIZATION_CODE_RECEIVED_FROM_AUTH_URL"));
-            params.add(new BasicNameValuePair("redirect_uri", REDIRECT_URI));
-            params.add(new BasicNameValuePair("client_id", CLIENT_ID));
-            params.add(new BasicNameValuePair("client_secret", CLIENT_SECRET));
-            httpPost.setEntity(new UrlEncodedFormEntity(params));
-
-            // Execute the POST request
-            HttpResponse response = httpClient.execute(httpPost);
+            HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
 
             // Read and output the response
-            String jsonResponse = EntityUtils.toString(response.getEntity());
+            String jsonResponse = response.body();
             System.out.println("Response: " + jsonResponse);
 
             // TODO: Extract the access token from the response and use it to make authenticated requests to the API
             accessTokenMayBe = JsonParser.getJsonTagValue(jsonResponse, ACCESS_TOKEN);
 
-        } catch (Exception e) {
+        } catch (IOException  | InterruptedException e) {
             e.printStackTrace();
+            throw new RuntimeException("Getting access token from TradeStation failed" + e.getMessage());
         }
         return accessTokenMayBe;
+    }
+
+    private static String basicAuthHeader() {
+        String encodedCredentials = Base64.getEncoder().encodeToString((CLIENT_ID + ":" + CLIENT_SECRET).getBytes());
+        return "Basic " + encodedCredentials;
     }
 
     @Override
     /** return the API key we get from TradeStation
      *
      */
-    public String getApiKey()  {
+    public String getApiKey() {
         return "acklsdkadkkadadladda";
     }
 }
