@@ -6,7 +6,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.samruddhi.trading.equities.domain.Bar;
 import com.samruddhi.trading.equities.domain.OptionData;
+import com.samruddhi.trading.equities.domain.placeorder.PlaceOrderResponse;
 
+import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -55,5 +57,12 @@ public class JsonParser {
             e.printStackTrace();
         }
         return optionData;
+    }
+
+
+    public static PlaceOrderResponse getPlaceOrderResponse(String jsonString) throws JsonProcessingException {
+        ObjectMapper mapper = new ObjectMapper();
+        PlaceOrderResponse placeOrderResponse = mapper.readValue(jsonString, PlaceOrderResponse.class);
+        return placeOrderResponse;
     }
 }

@@ -1,0 +1,23 @@
+{
+  "Orders": [
+    {
+      "Message": "Sent order: Sell 1 MSFT @ Market",
+      "OrderID": "286179829"
+    },
+    {
+      "Message": "Sent order: Sell 1 MSFT @ 232.86 Stop Market",
+      "OrderID": "286179830"
+    },
+    {
+      "Message": "Sent order: Buy 1 MSFT @ Market",
+      "OrderID": "286179831"
+    }
+  ],
+  "Errors": [
+    {
+      "Error": "FAILED",
+      "Message": "Order failed. Reason: Type = LMT has invalid Price greater than absolute maximum",
+      "OrderID": "1234567"
+    }
+  ]
+}

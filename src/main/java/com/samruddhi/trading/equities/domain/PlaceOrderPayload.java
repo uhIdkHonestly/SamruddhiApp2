@@ -1,6 +1,9 @@
 package com.samruddhi.trading.equities.domain;
 
-public class Order {
+/** Pojo for Place Order Request payload
+ *
+ */
+public class PlaceOrderPayload {
     String AccountID;
     String Symbol;
     String Quantity;

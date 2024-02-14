@@ -212,16 +212,16 @@ public class OptionData {
         this.dailyOpenInterest = dailyOpenInterest;
     }
 
-    public String getAsk() {
-        return ask;
+    public double getAsk() {
+        return Double.parseDouble(ask);
     }
 
     public void setAsk(String ask) {
         this.ask = ask;
     }
 
-    public String getBid() {
-        return bid;
+    public double getBid() {
+        return Double.parseDouble(bid);
     }
 
     public void setBid(String bid) {
