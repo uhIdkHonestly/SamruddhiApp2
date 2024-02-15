@@ -1,7 +1,9 @@
 package com.samruddhi.trading.equities.services;
 
-import com.samruddhi.trading.equities.domain.Bar;
-import com.samruddhi.trading.equities.services.base.MarketDataService;
+import com.samruddhi.trading.equities.config.ConfigManager;
+import com.samruddhi.trading.equities.domain.getordersbyid.GetOrdersByOrderIdResponse;
+import com.samruddhi.trading.equities.exceptions.GetOrdersException;
+import com.samruddhi.trading.equities.services.base.GetOrdersByOrderIdService;
 import common.JsonParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,35 +14,21 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
-import java.util.Collections;
-import java.util.List;
 
-public class MarketDataServiceImpl implements MarketDataService {
+public class GetOrdersByOrderIdServiceImpl implements GetOrdersByOrderIdService {
 
-    private static final Logger logger = LoggerFactory.getLogger(MarketDataServiceImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(GetOrdersByOrderIdService.class);
 
-    public String TIME_UNIT_MINUTE = "Minute";
-    public String TIME_UNIT_DAILY = "Daily";
+    private final String GET_ORDERS_URL = "https://api.tradestation.com/v3/brokerage/accounts/%s/orders/%S";
 
-    private final String MARKET_DATA_URL = "https://api.tradestation.com/v3/marketdata/barcharts/%s?interval=%s&unit=%s&barsback=%s&sessiontemplate=Default";
 
-    /** For daily and minute chart please pass for  min -
-     * 1, TIME_UNIT_MINUTE, 2
-     * 1, TIME_UNIT_DAILY, 5, 13, 50
-     *
-     * @param ticker
-     * @param durationType
-     * @param duration
-     * @param barsBack
-     * @return
-     * @throws Exception
-     */
     @Override
-    public List<Bar> getStockDataBars(String ticker, String durationType, int duration, int barsBack) throws Exception {
+    public GetOrdersByOrderIdResponse getOrders(String orderId) throws GetOrdersException {
         // Replace with your actual API token
         String token = TradeStationAuthImpl.getInstance().getAccessToken().get();
+        int accountId = Integer.parseInt(ConfigManager.getInstance().getProperty("account.id"));
+        String apiUrl = String.format(GET_ORDERS_URL, accountId);
 
-        String apiUrl = String.format(MARKET_DATA_URL, ticker, 1, TIME_UNIT_DAILY, 2);
         try {
 
             HttpResponse<String> response = createHttpRequest(apiUrl, token);
@@ -50,15 +38,16 @@ public class MarketDataServiceImpl implements MarketDataService {
                 String responseBody = response.body();
                 logger.info("Response JSON:");
                 logger.info(responseBody);
-                return JsonParser.getListOfBars(responseBody);
+                return JsonParser.getOrdersByIdResponse(responseBody);
             } else {
                 System.err.println("Error: HTTP status code " + response.statusCode());
+                throw new GetOrdersException("Http error non 200 while getting orders by Id" + response.statusCode()) ;
             }
 
         } catch (Exception e) {
             e.printStackTrace();
+            throw new GetOrdersException(e.getMessage());
         }
-        return Collections.emptyList();
     }
 
     private HttpResponse<String> createHttpRequest(String apiUrl, String token) throws Exception {

@@ -152,11 +152,16 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
      * @param ticker
      */
     private void initiateCallorPutBuying(String ticker, double price, char callOrPut) {
-        NextStrikePrice  nextStrikePrice = OptionTickerProvider.getNextOptionTicker(ticker,  price,  callOrPut);
-        switch(callOrPut) {
-            case 'C' -> optionOrderProcessor.processCallBuyOrder(nextStrikePrice, ticker, price);
-            case 'P' -> optionOrderProcessor.processPutBuyOrder(nextStrikePrice, ticker, price);
+        try {
+            NextStrikePrice nextStrikePrice = OptionTickerProvider.getNextOptionTicker(ticker, price, callOrPut);
+            switch (callOrPut) {
+                case 'C' -> optionOrderProcessor.processCallBuyOrder(nextStrikePrice, ticker, price);
+                case 'P' -> optionOrderProcessor.processPutBuyOrder(nextStrikePrice, ticker, price);
+            }
+        } catch (Exception e) {
+            // TO DO fix me
         }
+
     }
 
     private void determineCallSellPoint(List<Bar> minuteBars, List<Bar> dailyBars) {

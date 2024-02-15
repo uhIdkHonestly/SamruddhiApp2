@@ -1,6 +1,6 @@
 package com.samruddhi.trading.equities.domain.placeorder;
 
-class Error {
+public class Error {
     private String Error;
     private String Message;
     private String OrderID;

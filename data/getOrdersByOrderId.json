@@ -1,0 +1,187 @@
+{
+  "Orders": [
+    {
+      "AccountID": "123456782",
+      "CommissionFee": "0",
+      "Currency": "USD",
+      "Duration": "GTC",
+      "GoodTillDate": "2021-05-25T00:00:00Z",
+      "Legs": [
+        {
+          "AssetType": "STOCK",
+          "BuyOrSell": "Buy",
+          "ExecQuantity": "0",
+          "ExecutionPrice": "112.28",
+          "ExpirationDate": "2021-05-25T00:00:00Z",
+          "OpenOrClose": "Open",
+          "OptionType": "CALL",
+          "QuantityOrdered": "10",
+          "QuantityRemaining": "10",
+          "StrikePrice": "350",
+          "Symbol": "MSFT",
+          "Underlying": "MSFT"
+        }
+      ],
+      "MarketActivationRules": [
+        {
+          "RuleType": "Price",
+          "Symbol": "EDZ22",
+          "Predicate": "gt",
+          "TriggerKey": "STTN",
+          "Price": "10000.01"
+        }
+      ],
+      "OrderID": "286234131",
+      "OpenedDateTime": "2021-02-24T15:47:45Z",
+      "OrderType": "Market",
+      "PriceUsedForBuyingPower": "230.46",
+      "Routing": "Intelligent",
+      "Status": "OPN",
+      "StatusDescription": "Sent",
+      "AdvancedOptions": "CND=EDZ22>10000.01(STTN);TIM=23:59:59;",
+      "TimeActivationRules": [
+        {
+          "TimeUtc": "0001-01-01T23:59:59Z"
+        }
+      ],
+      "UnbundledRouteFee": "0"
+    },
+    {
+      "AccountID": "123456782",
+      "CommissionFee": "0",
+      "ClosedDateTime": "2020-11-16T16:53:37Z",
+      "Currency": "USD",
+      "Duration": "GTC",
+      "FilledPrice": "216.68",
+      "GoodTillDate": "2021-02-14T00:00:00Z",
+      "Legs": [
+        {
+          "OpenOrClose": "Open",
+          "QuantityOrdered": "10",
+          "ExecQuantity": "10",
+          "QuantityRemaining": "0",
+          "BuyOrSell": "Buy",
+          "Symbol": "MSFT",
+          "AssetType": "STOCK"
+        }
+      ],
+      "OrderID": "123456789",
+      "OpenedDateTime": "2020-11-16T16:53:37Z",
+      "OrderType": "Market",
+      "PriceUsedForBuyingPower": "216.66",
+      "Routing": "Intelligent",
+      "Status": "FLL",
+      "StatusDescription": "Filled",
+      "UnbundledRouteFee": "0"
+    },
+    {
+      "AccountID": "123456782",
+      "CommissionFee": "0",
+      "ConditionalOrders": [
+        {
+          "Relationship": "OCO",
+          "OrderID": "286179864"
+        }
+      ],
+      "Currency": "USD",
+      "Duration": "GTC",
+      "GoodTillDate": "2021-02-15T00:00:00Z",
+      "GroupName": "OCO 2706452145",
+      "Legs": [
+        {
+          "OpenOrClose": "Close",
+          "QuantityOrdered": "10",
+          "ExecQuantity": "0",
+          "QuantityRemaining": "10",
+          "BuyOrSell": "Sell",
+          "Symbol": "MSFT",
+          "AssetType": "STOCK"
+        }
+      ],
+      "LimitPrice": "230",
+      "OrderID": "286179863",
+      "OpenedDateTime": "2020-11-17T16:34:37Z",
+      "OrderType": "Limit",
+      "PriceUsedForBuyingPower": "230",
+      "Routing": "Intelligent",
+      "Status": "ACK",
+      "StatusDescription": "Received",
+      "AdvancedOptions": "OCA=2706452145;",
+      "UnbundledRouteFee": "0"
+    },
+    {
+      "AccountID": "123456782",
+      "CommissionFee": "0",
+      "ConditionalOrders": [
+        {
+          "Relationship": "OCO",
+          "OrderID": "286179863"
+        }
+      ],
+      "Currency": "USD",
+      "Duration": "GTC",
+      "GoodTillDate": "2021-02-15T00:00:00Z",
+      "GroupName": "OCO 2706452145",
+      "Legs": [
+        {
+          "OpenOrClose": "Close",
+          "QuantityOrdered": "10",
+          "ExecQuantity": "0",
+          "QuantityRemaining": "10",
+          "BuyOrSell": "Sell",
+          "Symbol": "MSFT",
+          "AssetType": "STOCK"
+        }
+      ],
+      "OrderID": "286179864",
+      "OpenedDateTime": "2020-11-17T16:34:37Z",
+      "OrderType": "StopMarket",
+      "PriceUsedForBuyingPower": "215.06",
+      "Routing": "Intelligent",
+      "Status": "ACK",
+      "StatusDescription": "Received",
+      "StopPrice": "130",
+      "AdvancedOptions": "STPTRG=STT;OCA=2706452145;",
+      "UnbundledRouteFee": "0"
+    },
+    {
+      "AccountID": "123456782",
+      "CommissionFee": "0",
+      "ConditionalOrders": [
+        {
+          "Relationship": "OCO",
+          "OrderID": "286179863"
+        }
+      ],
+      "Currency": "USD",
+      "Duration": "GTC",
+      "GoodTillDate": "2021-02-15T00:00:00Z",
+      "GroupName": "OCO 2706452145",
+      "Legs": [
+        {
+          "OpenOrClose": "Close",
+          "QuantityOrdered": "10",
+          "ExecQuantity": "0",
+          "QuantityRemaining": "10",
+          "BuyOrSell": "Sell",
+          "Symbol": "MSFT",
+          "AssetType": "STOCK"
+        }
+      ],
+      "OrderID": "286179864",
+      "OpenedDateTime": "2020-11-17T16:34:37Z",
+      "OrderType": "StopMarket",
+      "PriceUsedForBuyingPower": "215.06",
+      "Routing": "Intelligent",
+      "Status": "ACK",
+      "StatusDescription": "Received",
+      "StopPrice": "215.06",
+      "AdvancedOptions": "STPTRG=STT;TRL=5%;",
+      "TrailingStop": {
+        "Percent": "5.0"
+      },
+      "UnbundledRouteFee": "0"
+    }
+  ],
+  "Errors": []
+}

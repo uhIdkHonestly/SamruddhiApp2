@@ -5,12 +5,12 @@ package com.samruddhi.trading.equities.domain;
  */
 public class PlaceOrderPayload {
     String AccountID;
-    String Symbol;
-    String Quantity;
-    String OrderType = "Limit";
+    String symbol;
+    int quantity;
+    String orderType = "Limit";
     double limitPrice;
-    String TradeAction = "BUY";
-    String TimeInForce = " { \"Duration\": \"DAY\"  }";
+    String tradeAction = "BUY";
+    String timeInForce = " { \"Duration\": \"DAY\"  }";
     String route = "\"Route\": \"Intelligent\"";
 
     public String getAccountID() {
@@ -22,27 +22,27 @@ public class PlaceOrderPayload {
     }
 
     public String getSymbol() {
-        return Symbol;
+        return symbol;
     }
 
     public void setSymbol(String symbol) {
-        Symbol = symbol;
+        this.symbol = symbol;
     }
 
-    public String getQuantity() {
-        return Quantity;
+    public int getQuantity() {
+        return quantity;
     }
 
-    public void setQuantity(String quantity) {
-        Quantity = quantity;
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
     }
 
     public String getOrderType() {
-        return OrderType;
+        return orderType;
     }
 
     public void setOrderType(String orderType) {
-        OrderType = orderType;
+        this.orderType = orderType;
     }
 
     public double getLimitPrice() {
@@ -54,19 +54,19 @@ public class PlaceOrderPayload {
     }
 
     public String getTradeAction() {
-        return TradeAction;
+        return tradeAction;
     }
 
     public void setTradeAction(String tradeAction) {
-        TradeAction = tradeAction;
+        this.tradeAction = tradeAction;
     }
 
     public String getTimeInForce() {
-        return TimeInForce;
+        return timeInForce;
     }
 
     public void setTimeInForce(String timeInForce) {
-        TimeInForce = timeInForce;
+        this.timeInForce = timeInForce;
     }
 
     public String getRoute() {

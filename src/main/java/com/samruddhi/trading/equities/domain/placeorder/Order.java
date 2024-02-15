@@ -8,7 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
         import java.util.List;
 
 // Order class
-class Order {
+public class Order {
     private String Message;
     private String OrderID;
 
