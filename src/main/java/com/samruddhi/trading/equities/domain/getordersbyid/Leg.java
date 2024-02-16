@@ -29,4 +29,100 @@ public class Leg {
     private String underlying;
 
     // Getters and Setters
+
+    public String getAssetType() {
+        return assetType;
+    }
+
+    public void setAssetType(String assetType) {
+        this.assetType = assetType;
+    }
+
+    public String getBuyOrSell() {
+        return buyOrSell;
+    }
+
+    public void setBuyOrSell(String buyOrSell) {
+        this.buyOrSell = buyOrSell;
+    }
+
+    public int getExecQuantity() {
+        return Integer.parseInt(execQuantity);
+    }
+
+    public void setExecQuantity(String execQuantity) {
+        this.execQuantity = execQuantity;
+    }
+
+    public String getExecutionPrice() {
+        return executionPrice;
+    }
+
+    public void setExecutionPrice(String executionPrice) {
+        this.executionPrice = executionPrice;
+    }
+
+    public String getExpirationDate() {
+        return expirationDate;
+    }
+
+    public void setExpirationDate(String expirationDate) {
+        this.expirationDate = expirationDate;
+    }
+
+    public String getOpenOrClose() {
+        return openOrClose;
+    }
+
+    public void setOpenOrClose(String openOrClose) {
+        this.openOrClose = openOrClose;
+    }
+
+    public String getOptionType() {
+        return optionType;
+    }
+
+    public void setOptionType(String optionType) {
+        this.optionType = optionType;
+    }
+
+    public String getQuantityOrdered() {
+        return quantityOrdered;
+    }
+
+    public void setQuantityOrdered(String quantityOrdered) {
+        this.quantityOrdered = quantityOrdered;
+    }
+
+    public String getQuantityRemaining() {
+        return quantityRemaining;
+    }
+
+    public void setQuantityRemaining(String quantityRemaining) {
+        this.quantityRemaining = quantityRemaining;
+    }
+
+    public String getStrikePrice() {
+        return strikePrice;
+    }
+
+    public void setStrikePrice(String strikePrice) {
+        this.strikePrice = strikePrice;
+    }
+
+    public String getSymbol() {
+        return symbol;
+    }
+
+    public void setSymbol(String symbol) {
+        this.symbol = symbol;
+    }
+
+    public String getUnderlying() {
+        return underlying;
+    }
+
+    public void setUnderlying(String underlying) {
+        this.underlying = underlying;
+    }
 }

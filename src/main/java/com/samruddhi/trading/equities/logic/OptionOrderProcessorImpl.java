@@ -6,6 +6,9 @@ import com.samruddhi.trading.equities.domain.NextStrikePrice;
 import com.samruddhi.trading.equities.domain.OptionData;
 import com.samruddhi.trading.equities.domain.PlaceOrderPayload;
 import com.samruddhi.trading.equities.domain.getordersbyid.GetOrdersByOrderIdResponse;
+import com.samruddhi.trading.equities.domain.getordersbyid.Leg;
+import com.samruddhi.trading.equities.domain.getordersbyid.Order;
+import com.samruddhi.trading.equities.domain.getordersbyid.OrderFillStatus;
 import com.samruddhi.trading.equities.domain.placeorder.PlaceOrderResponse;
 import com.samruddhi.trading.equities.exceptions.CallOrderException;
 import com.samruddhi.trading.equities.logic.base.OptionOrderProcessor;
@@ -28,10 +31,22 @@ public class OptionOrderProcessorImpl implements OptionOrderProcessor {
     private static final int MIN_CALL_QUANTITY  = 2;
     private static final int MIN_PUT_QUANTITY  = 2;
     private static final double BID_ASK_MULTIPLIER  = 0.7;
+
+    //move to enum
+    private static final String ORDER_STATUS_FILLED  = "FLL";
+    private static final String ORDER_STATUS_OPEN =  "OPN";
+    private static final String ORDER_STATUS_ACK =  "ACK";
+    private static final String ORDER_STATUS_FAILED =  "FAILED";
+
+
+    private static final int RETRY_EFFORTS  = 3;
+
     private final StreamingOptionQuoteService streamingOptionQuoteService;
     private final OptionOrderProcessor optionOrderProcessor;
     private final OrderService orderService;
     private final GetOrdersByOrderIdService getOrdersByOrderIdService;
+
+
 
     private int NUMBER_OF_RETRIES = 3;
 
@@ -43,7 +58,7 @@ public class OptionOrderProcessorImpl implements OptionOrderProcessor {
     }
 
     @Override
-    public void processCallBuyOrder(NextStrikePrice nextStrikePrice, String ticker, double price) throws Exception {
+    public OrderFillStatus processCallBuyOrder(NextStrikePrice nextStrikePrice, String ticker, double price) throws Exception {
         // Place call BUY
         OptionData optionData = streamingOptionQuoteService.getOptionQuote(ticker, nextStrikePrice.getDateWithStrike());
         double callLimitPrice = getCallBuyPrice(optionData);
@@ -61,12 +76,27 @@ public class OptionOrderProcessorImpl implements OptionOrderProcessor {
 
         String orderId = getOrderId(placeOrderResponse, nextStrikePrice, ticker);
         GetOrdersByOrderIdResponse getOrdersByOrderIdResponse = getOrdersByOrderIdService.getOrders(orderId);
-        //getOrdersByOrderIdResponse.
+        if( getOrdersByOrderIdResponse.getErrors() != null && getOrdersByOrderIdResponse.getErrors().size() > 0) {
+            // return error
+        } else if( getOrdersByOrderIdResponse.getOrders() != null && getOrdersByOrderIdResponse.getOrders().size() > 0) {
+            Order order = getOrdersByOrderIdResponse.getOrders().get(0);
+            // TO DO need to checkm and throw exception if no legs
+            Leg leg = order.getLegs().get(0);
+            if( order.getStatus().equals(ORDER_STATUS_FILLED)) {
+                return new OrderFillStatus(ORDER_STATUS_FILLED, order.getFilledPrice(), leg.getExecQuantity(), leg.getSymbol());
+            } else {
+                // wait for dome more time
 
+            }
+        }
+        return new OrderFillStatus(ORDER_STATUS_FAILED, 0.0, 0, "");
+    }
+
+    private OrderFillStatus checkOrderFillStatus(String orderId) {
+       return null;
     }
 
     private String getOrderId(PlaceOrderResponse placeOrderResponse, NextStrikePrice nextStrikePrice, String ticker) throws CallOrderException {
-        //
 
         if(placeOrderResponse.getErrors() != null && placeOrderResponse.getErrors().size() > 0) {
             Error error = placeOrderResponse.getErrors().get(0);
@@ -80,8 +110,13 @@ public class OptionOrderProcessorImpl implements OptionOrderProcessor {
     }
 
     @Override
-    public void processPutBuyOrder(NextStrikePrice nextStrikePrice, String ticker, double price) {
+    public OrderFillStatus processPutBuyOrder(NextStrikePrice nextStrikePrice, String ticker, double price) {
 
+        int i=0;
+        while(i < RETRY_EFFORTS) {
+
+        }
+        return null;
     }
 
     private double getCallBuyPrice(OptionData optionData) {
