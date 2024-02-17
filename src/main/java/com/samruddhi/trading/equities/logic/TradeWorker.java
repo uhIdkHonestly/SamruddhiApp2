@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 
 import com.samruddhi.trading.equities.domain.NextStrikePrice;
+import com.samruddhi.trading.equities.domain.getordersbyid.OrderFillStatus;
 import com.samruddhi.trading.equities.logic.base.OptionOrderProcessor;
 import com.samruddhi.trading.equities.services.StreamingOptionQuoteServiceImpl;
 import com.samruddhi.trading.equities.services.base.StreamingOptionQuoteService;
@@ -162,6 +163,20 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
             // TO DO fix me
         }
 
+    }
+
+    /** id not result if the call BUY order did not result in FILL we need to cancel order
+     *
+     * @param nextStrikePrice
+     * @param ticker
+     * @param price
+     * @throws Exception
+     */
+    private void processCallBuyAndCancel(NextStrikePrice nextStrikePrice  , String ticker, double price) throws Exception {
+        OrderFillStatus orderFillStatus = optionOrderProcessor.processCallBuyOrder(nextStrikePrice, ticker, price);
+
+        //process cancel order that did not fill or resubvmit next minute??
+        //if(orderFillStatus.getStatus().equals())
     }
 
     private void determineCallSellPoint(List<Bar> minuteBars, List<Bar> dailyBars) {

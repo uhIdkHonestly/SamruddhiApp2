@@ -1,5 +1,9 @@
 package com.samruddhi.trading.equities.logic;
 
+import static com.samruddhi.trading.equities.logic.OptionOrderFillStatus.ORDER_STATUS_FAILED;
+import static com.samruddhi.trading.equities.logic.OptionOrderFillStatus.ORDER_STATUS_ACK;
+import static com.samruddhi.trading.equities.logic.OptionOrderFillStatus.ORDER_STATUS_FILLED;
+import static com.samruddhi.trading.equities.logic.OptionOrderFillStatus.ORDER_STATUS_OPEN;
 
 import com.samruddhi.trading.equities.config.ConfigManager;
 import com.samruddhi.trading.equities.domain.NextStrikePrice;
@@ -26,6 +30,8 @@ import org.slf4j.LoggerFactory;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
+import static com.samruddhi.trading.equities.logic.OptionOrderFillStatus.ORDER_STATUS_FAILED;
+
 /** Intelligently process Option order, retrieve current bid/ask each time, this should include retry logic as Option price may have gone up or down after Order is placed first
  * */
 public class OptionOrderProcessorImpl implements OptionOrderProcessor {
@@ -37,10 +43,10 @@ public class OptionOrderProcessorImpl implements OptionOrderProcessor {
     private static final double BID_ASK_MULTIPLIER  = 0.7;
 
     //move to enum
-    private static final String ORDER_STATUS_FILLED  = "FLL";
-    private static final String ORDER_STATUS_OPEN =  "OPN";
-    private static final String ORDER_STATUS_ACK =  "ACK";
-    private static final String ORDER_STATUS_FAILED =  "FAILED";
+   /* public static final String ORDER_STATUS_FILLED  = "FLL";
+    public static final String ORDER_STATUS_OPEN =  "OPN";
+    public static final String ORDER_STATUS_ACK =  "ACK";
+    public static final String ORDER_STATUS_FAILED =  "FAILED";*/
 
 
     private static final int ORDER_FILL_RESPONSE_CHECK_TRIES = 3;
@@ -81,21 +87,8 @@ public class OptionOrderProcessorImpl implements OptionOrderProcessor {
 
         String orderId = getOrderId(placeOrderResponse, nextStrikePrice, ticker);
 
-        GetOrdersByOrderIdResponse getOrdersByOrderIdResponse = getOrdersByOrderIdService.getOrders(orderId);
-        if( getOrdersByOrderIdResponse.getErrors() != null && getOrdersByOrderIdResponse.getErrors().size() > 0) {
-            // return error
-        } else if( getOrdersByOrderIdResponse.getOrders() != null && getOrdersByOrderIdResponse.getOrders().size() > 0) {
-            Order order = getOrdersByOrderIdResponse.getOrders().get(0);
-            // TO DO need to checkm and throw exception if no legs
-            Leg leg = order.getLegs().get(0);
-            if( order.getStatus().equals(ORDER_STATUS_FILLED)) {
-                return new OrderFillStatus(ORDER_STATUS_FILLED, order.getFilledPrice(), leg.getExecQuantity(), leg.getSymbol());
-            } else {
-                // wait for dome more time
-
-            }
-        }
-        return new OrderFillStatus(ORDER_STATUS_FAILED, 0.0, 0, "");
+        waitForOrderFill(orderId);
+        return new OrderFillStatus( "FAILED", 0.0, 0, "");
     }
 
     private OrderFillStatus waitForOrderFill(String orderId) throws Exception {
@@ -103,14 +96,14 @@ public class OptionOrderProcessorImpl implements OptionOrderProcessor {
         int i = 0;
         while(i < ORDER_FILL_RESPONSE_CHECK_TRIES) {
             OrderFillStatus orderFillStatus = checkOrderFillStatus(orderId);
-            if(orderFillStatus.getStatus().equals(ORDER_STATUS_FAILED) || orderFillStatus.getStatus().equals(ORDER_STATUS_FILLED) )
+            if(orderFillStatus.getStatus() == OptionOrderFillStatus.ORDER_STATUS_FAILED || orderFillStatus.getStatus() == OptionOrderFillStatus.ORDER_STATUS_FILLED )
                 return orderFillStatus;
-            else if(orderFillStatus.getStatus().equals(ORDER_STATUS_OPEN)) {
+            else if(orderFillStatus.getStatus() == OptionOrderFillStatus.ORDER_STATUS_OPEN ) {
                 logger.info("Order is still open , checking after a few milliseconds");
                 Thread.sleep(ORDER_FILL_RESPONSE_WAIT_TIME);
             }
         }
-        return new OrderFillStatus(ORDER_STATUS_FAILED, 0.0, 0, "");
+        return new OrderFillStatus("FAILED", 0.0, 0, "");
 
     }
 
@@ -128,6 +121,7 @@ public class OptionOrderProcessorImpl implements OptionOrderProcessor {
                 return new OrderFillStatus(ORDER_STATUS_OPEN, order.getFilledPrice(), leg.getExecQuantity(), leg.getSymbol());
             }
         }
+        return  new OrderFillStatus(ORDER_STATUS_FAILED, 0.0, 0, "");
     }
 
     private String getOrderId(PlaceOrderResponse placeOrderResponse, NextStrikePrice nextStrikePrice, String ticker) throws CallOrderException {
@@ -145,7 +139,7 @@ public class OptionOrderProcessorImpl implements OptionOrderProcessor {
 
     @Override
     public OrderFillStatus processPutBuyOrder(NextStrikePrice nextStrikePrice, String ticker, double price) {
-
+        // TO DO Just like call order
         int i=0;
         while(i < ORDER_FILL_RESPONSE_CHECK_TRIES) {
 

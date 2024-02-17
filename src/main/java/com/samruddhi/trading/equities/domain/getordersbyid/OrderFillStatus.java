@@ -1,24 +1,33 @@
 package com.samruddhi.trading.equities.domain.getordersbyid;
 
+import com.samruddhi.trading.equities.logic.OptionOrderFillStatus;
+
 public class OrderFillStatus {
 
-    String status;
+    OptionOrderFillStatus status;
     double fillPrice;
     int fillQuantity;
     String ticker;
 
     public OrderFillStatus(String status, double fillPrice, int fillQuantity, String ticker) {
+        this.status = OptionOrderFillStatus.fromString(status);
+        this.fillPrice = fillPrice;
+        this.fillQuantity = fillQuantity;
+        this.ticker = ticker;
+    }
+
+    public OrderFillStatus(OptionOrderFillStatus status, double fillPrice, int fillQuantity, String ticker) {
         this.status = status;
         this.fillPrice = fillPrice;
         this.fillQuantity = fillQuantity;
         this.ticker = ticker;
     }
 
-    public String getStatus() {
+    public OptionOrderFillStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(OptionOrderFillStatus status) {
         this.status = status;
     }
 
