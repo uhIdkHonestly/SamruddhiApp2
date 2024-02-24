@@ -7,4 +7,6 @@ import com.samruddhi.trading.equities.domain.placeorder.PlaceOrderResponse;
 public interface OrderService {
 
     public PlaceOrderResponse placeOrder(PlaceOrderPayload order) throws Exception;
+
+    public String cancelOrder(String orderId) throws Exception;
 }

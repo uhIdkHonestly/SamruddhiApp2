@@ -58,4 +58,10 @@ public class OrderServiceImpl implements OrderService {
             throw e;
         }
     }
+
+    @Override
+    public String cancelOrder(String orderId) throws Exception {
+        // TO DO
+        return null;
+    }
 }

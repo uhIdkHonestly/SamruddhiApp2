@@ -4,19 +4,22 @@ import com.samruddhi.trading.equities.logic.OptionOrderFillStatus;
 
 public class OrderFillStatus {
 
+    String orderId;
     OptionOrderFillStatus status;
     double fillPrice;
     int fillQuantity;
     String ticker;
 
-    public OrderFillStatus(String status, double fillPrice, int fillQuantity, String ticker) {
+    public OrderFillStatus(String orderId, String status, double fillPrice, int fillQuantity, String ticker) {
+        this.orderId = orderId;
         this.status = OptionOrderFillStatus.fromString(status);
         this.fillPrice = fillPrice;
         this.fillQuantity = fillQuantity;
         this.ticker = ticker;
     }
 
-    public OrderFillStatus(OptionOrderFillStatus status, double fillPrice, int fillQuantity, String ticker) {
+    public OrderFillStatus(String orderId, OptionOrderFillStatus status, double fillPrice, int fillQuantity, String ticker) {
+        this.orderId = orderId;
         this.status = status;
         this.fillPrice = fillPrice;
         this.fillQuantity = fillQuantity;
@@ -53,5 +56,13 @@ public class OrderFillStatus {
 
     public void setTicker(String ticker) {
         this.ticker = ticker;
+    }
+
+    public String getOrderId() {
+        return orderId;
+    }
+
+    public void setOrderId(String orderId) {
+        this.orderId = orderId;
     }
 }

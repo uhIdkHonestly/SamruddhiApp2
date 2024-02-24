@@ -23,9 +23,12 @@ import com.samruddhi.trading.equities.studies.EMACalculator;
 import com.samruddhi.trading.equities.studies.MACDCalculator;
 import com.samruddhi.trading.equities.studies.RSICalculator;
 
+import static com.samruddhi.trading.equities.logic.OptionOrderFillStatus.*;
+
 
 public class TradeWorker implements Callable<TradeWorkerStatus> {
 
+    private static final OrderFillStatus ORDER_FILLSTATUS_FAILED = new OrderFillStatus("0", ORDER_STATUS_FAILED, 0.0, 0, "");
     private enum CurrentStatus {
         UPTREND, DOWNTREND, CALL_HELD, PUT_HELD, NO_STATUS;
     }
@@ -50,8 +53,14 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
      */
     private PreviousEmas previousEmas;
 
+    /** What's my curent status ie UPTREND, DOWNTREND, CALL_HELD, PUT_HELD, NO_STATUS, storeed for chgecking worker status easily
+     */
     private CurrentStatus currentStatus;
 
+    /** Details of order fill status that came from ORDER*/
+    private OrderFillStatus currentOrderFillStatus;
+
+    /** Keeps track of all Finished trades in this worker and also worker status */
     private TradeWorkerStatus tradeWorkerStatus;
 
     private OptionOrderProcessor optionOrderProcessor;
@@ -87,7 +96,7 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
                     List<Bar> dailyBars = marketDataService.getStockDataBars(ticker, "Daily", 1, 50);
 
                     switch (currentStatus) {
-                        case NO_STATUS, UPTREND, DOWNTREND -> checkAndPlaceOrder(minuteBars, dailyBars);
+                        case NO_STATUS, UPTREND, DOWNTREND -> checkAndPlaceOptionBuyOrder(minuteBars, dailyBars);
                         case CALL_HELD -> determineCallSellPoint(minuteBars, dailyBars);
                         case PUT_HELD -> determinePutsSellPoint(minuteBars, dailyBars);
                     }
@@ -107,7 +116,7 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
         return null;
     }
 
-    private void checkAndPlaceOrder(List<Bar> minuteBars, List<Bar> dailyBars) {
+    private void checkAndPlaceOptionBuyOrder(List<Bar> minuteBars, List<Bar> dailyBars) throws Exception {
 
         double ema5 = EMACalculator.calculateEMAs(dailyBars, 5);
         double ema13 = EMACalculator.calculateEMAs(dailyBars, 13);
@@ -122,6 +131,7 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
         double rsi = RSICalculator.calculateRSI(dailyBars.subList(36, dailyBars.size()), 14);
         boolean isRsiBullish = rsi > 40; // Fix me
 
+        OrderFillStatus orderFillStatus = null;
         if (ema5 > ema50 && ema5 > ema13 && previousEmas != null) {
             // Probable Buy call scenario
             currentStatus = CurrentStatus.UPTREND;
@@ -131,8 +141,9 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
 
             // Initiate an Option buy order if all criteria met
             if (isBuyCallBasedOnPastMinute && isMacdBullish && isRsiBullish) {
-                initiateCallOrPutBuying(ticker, dailyBars.get(dailyBars.size()-1).getClose(), 'C');
+                orderFillStatus = initiateCallOrPutBuying(ticker, dailyBars.get(dailyBars.size() - 1).getClose(), 'C');
             }
+            saveBuyStatus(orderFillStatus, true);
         } else if (ema5 < ema50 && ema5 < ema13 && previousEmas != null) {
             // Probable Buy put scenario
             currentStatus = CurrentStatus.DOWNTREND;
@@ -140,43 +151,50 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
             boolean isSellPutBasedOnPastMinute = previousEmas.ema5day < previousEmas.ema50day && previousEmas.ema5day < previousEmas.ema13day;
             if (isSellPutBasedOnPastMinute && !isMacdBullish && !isRsiBullish) {
                 //initiatePutBuying(ticker, price);
-                initiateCallOrPutBuying(ticker, dailyBars.get(dailyBars.size()-1).getClose(), 'P');
+                orderFillStatus = initiateCallOrPutBuying(ticker, dailyBars.get(dailyBars.size() - 1).getClose(), 'P');
             }
+            saveBuyStatus(orderFillStatus, false);
+        }
+
+    }
+
+    /** Save status to indicate that something has been bought (call or put) */
+    private void saveBuyStatus(OrderFillStatus orderFillStatus, boolean isCall) throws Exception {
+        if(orderFillStatus.getStatus() != ORDER_STATUS_FILLED) {
+            if(isCall)
+                currentStatus = CurrentStatus.CALL_HELD;
+            else
+                currentStatus = CurrentStatus.PUT_HELD;
+
+            currentOrderFillStatus = orderFillStatus;
+        } else  if(orderFillStatus.getStatus() != ORDER_STATUS_OPEN) {
+           // TO DO -  optionOrderProcessor.cancelOrder(orderFillStatus.orderId);
+            optionOrderProcessor.cancelOrder(orderFillStatus.getOrderId());
         }
     }
 
-    /** 1) determine option ticker
-     *  2) get Bid / Ask and limit we want to place
-     *  3) Place Order for desired Option quantity (say 2 to 5)
-     *  4) track status
+    /**
+     * 1) determine option ticker
+     * 2) get Bid / Ask and limit we want to place
+     * 3) Place Order for desired Option quantity (say 2 to 5)
+     * 4) track status
      *
      * @param ticker
      */
-    private void initiateCallOrPutBuying(String ticker, double price, char callOrPut) {
+    private OrderFillStatus initiateCallOrPutBuying(String ticker, double price, char callOrPut) throws Exception {
+        OrderFillStatus orderFillStatus = ORDER_FILLSTATUS_FAILED;
         try {
             NextStrikePrice nextStrikePrice = OptionTickerProvider.getNextOptionTicker(ticker, price, callOrPut);
-            switch (callOrPut) {
+            orderFillStatus = switch (callOrPut) {
                 case 'C' -> optionOrderProcessor.processCallBuyOrder(nextStrikePrice, ticker, price);
                 case 'P' -> optionOrderProcessor.processPutBuyOrder(nextStrikePrice, ticker, price);
-            }
+                default ->  ORDER_FILLSTATUS_FAILED;
+            };
         } catch (Exception e) {
-            // TO DO fix me
+            logger.error("Error in initiateCallOrPutBuying {}", e.getMessage());
+            throw e;
         }
-
-    }
-
-    /** id not result if the call BUY order did not result in FILL we need to cancel order
-     *
-     * @param nextStrikePrice
-     * @param ticker
-     * @param price
-     * @throws Exception
-     */
-    private void processCallBuyAndCancel(NextStrikePrice nextStrikePrice  , String ticker, double price) throws Exception {
-        OrderFillStatus orderFillStatus = optionOrderProcessor.processCallBuyOrder(nextStrikePrice, ticker, price);
-
-        //process cancel order that did not fill or resubvmit next minute??
-        //if(orderFillStatus.getStatus().equals())
+        return orderFillStatus;
     }
 
     private void determineCallSellPoint(List<Bar> minuteBars, List<Bar> dailyBars) {

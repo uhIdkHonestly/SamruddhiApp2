@@ -35,35 +35,33 @@ import static com.samruddhi.trading.equities.logic.OptionOrderFillStatus.ORDER_S
 /** Intelligently process Option order, retrieve current bid/ask each time, this should include retry logic as Option price may have gone up or down after Order is placed first
  * */
 public class OptionOrderProcessorImpl implements OptionOrderProcessor {
-
     private static final Logger logger = LoggerFactory.getLogger(OptionOrderProcessorImpl.class);
+
+    private static final OrderFillStatus ORDER_FILLSTATUS_FAILED = new OrderFillStatus("0", ORDER_STATUS_FAILED, 0.0, 0, "");
 
     private static final int MIN_CALL_QUANTITY  = 2;
     private static final int MIN_PUT_QUANTITY  = 2;
     private static final double BID_ASK_MULTIPLIER  = 0.7;
 
-    //move to enum
+    // Move to enum
    /* public static final String ORDER_STATUS_FILLED  = "FLL";
     public static final String ORDER_STATUS_OPEN =  "OPN";
     public static final String ORDER_STATUS_ACK =  "ACK";
     public static final String ORDER_STATUS_FAILED =  "FAILED";*/
 
-
     private static final int ORDER_FILL_RESPONSE_CHECK_TRIES = 3;
     private static final int ORDER_FILL_RESPONSE_WAIT_TIME = 30; // In millis
 
     private final StreamingOptionQuoteService streamingOptionQuoteService;
-    private final OptionOrderProcessor optionOrderProcessor;
+
     private final OrderService orderService;
     private final GetOrdersByOrderIdService getOrdersByOrderIdService;
-
-
 
     private int NUMBER_OF_RETRIES = 3;
 
     public OptionOrderProcessorImpl() {
         streamingOptionQuoteService = new StreamingOptionQuoteServiceImpl();
-        optionOrderProcessor = new OptionOrderProcessorImpl();
+
         orderService = new OrderServiceImpl();
         getOrdersByOrderIdService = new GetOrdersByOrderIdServiceImpl();
     }
@@ -83,12 +81,27 @@ public class OptionOrderProcessorImpl implements OptionOrderProcessor {
         payload.setLimitPrice(callLimitPrice);
 
         PlaceOrderResponse placeOrderResponse = orderService.placeOrder(payload);
-        // Check order status status
 
         String orderId = getOrderId(placeOrderResponse, nextStrikePrice, ticker);
 
-        waitForOrderFill(orderId);
-        return new OrderFillStatus( "FAILED", 0.0, 0, "");
+        OrderFillStatus orderFillStatus = waitForOrderFill(orderId);
+        return orderFillStatus;
+    }
+
+
+    @Override
+    public OrderFillStatus processPutBuyOrder(NextStrikePrice nextStrikePrice, String ticker, double price) {
+        // TO DO Just like call order
+        int i=0;
+        while(i < ORDER_FILL_RESPONSE_CHECK_TRIES) {
+
+        }
+        return null;
+    }
+
+    // TO DO
+    public OrderFillStatus cancelOrder(long orderId) throws Exception {
+        return null;
     }
 
     private OrderFillStatus waitForOrderFill(String orderId) throws Exception {
@@ -103,29 +116,27 @@ public class OptionOrderProcessorImpl implements OptionOrderProcessor {
                 Thread.sleep(ORDER_FILL_RESPONSE_WAIT_TIME);
             }
         }
-        return new OrderFillStatus("FAILED", 0.0, 0, "");
-
+        return new OrderFillStatus("0", "FAILED", 0.0, 0, "");
     }
 
     private OrderFillStatus checkOrderFillStatus(String orderId) throws Exception {
         GetOrdersByOrderIdResponse getOrdersByOrderIdResponse = getOrdersByOrderIdService.getOrders(orderId);
         if( getOrdersByOrderIdResponse.getErrors() != null && getOrdersByOrderIdResponse.getErrors().size() > 0) {
-            new OrderFillStatus(ORDER_STATUS_FAILED, 0.0, 0, "");
+            return ORDER_FILLSTATUS_FAILED;
         } else if( getOrdersByOrderIdResponse.getOrders() != null && getOrdersByOrderIdResponse.getOrders().size() > 0) {
             Order order = getOrdersByOrderIdResponse.getOrders().get(0);
-            // TO DO need to check and throw exception if no legs
+            // TO DO - Need to check and throw exception if no legs
             Leg leg = order.getLegs().get(0);
             if( order.getStatus().equals(ORDER_STATUS_FILLED)) {
-                return new OrderFillStatus(ORDER_STATUS_FILLED, order.getFilledPrice(), leg.getExecQuantity(), leg.getSymbol());
+                return new OrderFillStatus(orderId, ORDER_STATUS_FILLED, order.getFilledPrice(), leg.getExecQuantity(), leg.getSymbol());
             } else if( order.getStatus().equals(ORDER_STATUS_OPEN)) {
-                return new OrderFillStatus(ORDER_STATUS_OPEN, order.getFilledPrice(), leg.getExecQuantity(), leg.getSymbol());
+                return new OrderFillStatus(orderId, ORDER_STATUS_OPEN, order.getFilledPrice(), leg.getExecQuantity(), leg.getSymbol());
             }
         }
-        return  new OrderFillStatus(ORDER_STATUS_FAILED, 0.0, 0, "");
+        return  ORDER_FILLSTATUS_FAILED;
     }
 
     private String getOrderId(PlaceOrderResponse placeOrderResponse, NextStrikePrice nextStrikePrice, String ticker) throws CallOrderException {
-
         if(placeOrderResponse.getErrors() != null && placeOrderResponse.getErrors().size() > 0) {
             Error error = placeOrderResponse.getErrors().get(0);
             throw new CallOrderException("Error in call order :" + error.getMessage());
@@ -137,17 +148,12 @@ public class OptionOrderProcessorImpl implements OptionOrderProcessor {
         throw new CallOrderException(String.format("Missing or invalid order Id : for ticker %s ", nextStrikePrice.getFullOptionTicker()));
     }
 
-    @Override
-    public OrderFillStatus processPutBuyOrder(NextStrikePrice nextStrikePrice, String ticker, double price) {
-        // TO DO Just like call order
-        int i=0;
-        while(i < ORDER_FILL_RESPONSE_CHECK_TRIES) {
-
-        }
-        return null;
-    }
-
     private double getCallBuyPrice(OptionData optionData) {
         return (optionData.getAsk() - optionData.getBid())  * BID_ASK_MULTIPLIER ;
+    }
+
+    public String cancelOrder(String orderId) throws Exception {
+        // TO DO
+        return orderService.cancelOrder(orderId) ;
     }
 }
