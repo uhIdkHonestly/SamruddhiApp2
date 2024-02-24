@@ -110,6 +110,7 @@ public class Leg {
         this.strikePrice = strikePrice;
     }
 
+    // TO DO verify if symbol really returns Options symbol
     public String getSymbol() {
         return symbol;
     }

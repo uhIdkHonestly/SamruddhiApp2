@@ -170,6 +170,7 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
         } else  if(orderFillStatus.getStatus() != ORDER_STATUS_OPEN) {
            // TO DO -  optionOrderProcessor.cancelOrder(orderFillStatus.orderId);
             optionOrderProcessor.cancelOrder(orderFillStatus.getOrderId());
+            currentStatus = CurrentStatus.NO_STATUS;
         }
     }
 
@@ -197,8 +198,32 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
         return orderFillStatus;
     }
 
+    /** This when we already hold a call and need to sell it as trend is reversing or we need to trim due to meeting target price
+     *
+     * @param minuteBars
+     * @param dailyBars
+     */
     private void determineCallSellPoint(List<Bar> minuteBars, List<Bar> dailyBars) {
 
+        // TO DO duplicated work fix me
+        double ema5 = EMACalculator.calculateEMAs(dailyBars, 5);
+        double ema13 = EMACalculator.calculateEMAs(dailyBars, 13);
+        double ema50 = EMACalculator.calculateEMAs(dailyBars, 50);
+
+        // calculate and validate MACD
+        List<Bar> bars26Days = dailyBars.subList(24, dailyBars.size());
+        double[] macd = MACDCalculator.computeMACD(bars26Days, 12, 26, 9);
+        boolean isMacdBullish = MACDCalculator.isMACDTrendBullish(macd[0], macd[1]);
+
+        // Validate RSI and VWAP,
+        double rsi = RSICalculator.calculateRSI(dailyBars.subList(36, dailyBars.size()), 14);
+        boolean isRsiBullish = rsi > 40; // Fix me
+        // END TO DO duplicated work fix me
+
+        if (ema5 < ema50 && ema5 < ema13 && !isMacdBullish) {
+            // TO DO We need to sell this call Asap
+            currentStatus = CurrentStatus.NO_STATUS;
+        }
     }
 
     private void determinePutsSellPoint(List<Bar> minuteBars, List<Bar> dailyBars) {

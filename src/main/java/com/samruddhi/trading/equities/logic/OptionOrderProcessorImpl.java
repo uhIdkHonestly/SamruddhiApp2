@@ -43,12 +43,6 @@ public class OptionOrderProcessorImpl implements OptionOrderProcessor {
     private static final int MIN_PUT_QUANTITY  = 2;
     private static final double BID_ASK_MULTIPLIER  = 0.7;
 
-    // Move to enum
-   /* public static final String ORDER_STATUS_FILLED  = "FLL";
-    public static final String ORDER_STATUS_OPEN =  "OPN";
-    public static final String ORDER_STATUS_ACK =  "ACK";
-    public static final String ORDER_STATUS_FAILED =  "FAILED";*/
-
     private static final int ORDER_FILL_RESPONSE_CHECK_TRIES = 3;
     private static final int ORDER_FILL_RESPONSE_WAIT_TIME = 30; // In millis
 
@@ -152,8 +146,7 @@ public class OptionOrderProcessorImpl implements OptionOrderProcessor {
         return (optionData.getAsk() - optionData.getBid())  * BID_ASK_MULTIPLIER ;
     }
 
-    public String cancelOrder(String orderId) throws Exception {
-        // TO DO
-        return orderService.cancelOrder(orderId) ;
+    public void cancelOrder(String orderId) throws Exception {
+        orderService.cancelOrder(orderId) ;
     }
 }

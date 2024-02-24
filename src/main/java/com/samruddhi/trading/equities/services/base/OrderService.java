@@ -8,5 +8,5 @@ public interface OrderService {
 
     public PlaceOrderResponse placeOrder(PlaceOrderPayload order) throws Exception;
 
-    public String cancelOrder(String orderId) throws Exception;
+    public void cancelOrder(String orderId) throws Exception;
 }

@@ -7,6 +7,6 @@ public interface OptionOrderProcessor {
     public OrderFillStatus processCallBuyOrder(NextStrikePrice nextStrikePrice, String ticker, double price) throws Exception;
     public OrderFillStatus processPutBuyOrder(NextStrikePrice nextStrikePrice, String ticker, double price) throws Exception;
 
-    public String cancelOrder(String orderId) throws Exception;
+    public void cancelOrder(String orderId) throws Exception;
 }
 
