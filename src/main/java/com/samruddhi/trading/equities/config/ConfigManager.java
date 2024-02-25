@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.util.Properties;
 
 public class ConfigManager {
+    private double ACCEPTABLE_PRICE_DROP_PERCENT = 0.09;
     private static ConfigManager instance;
     private final Properties properties;
 
@@ -31,6 +32,12 @@ public class ConfigManager {
 
     public String getProperty(String key) {
         return properties.getProperty(key);
+    }
+
+    /** get acceptable price drop % */
+
+    public double getAcceptablePriceDropPercent(String ticker) {
+        return ACCEPTABLE_PRICE_DROP_PERCENT;
     }
 }
 

@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 
+import com.samruddhi.trading.equities.config.ConfigManager;
 import com.samruddhi.trading.equities.domain.NextStrikePrice;
 import com.samruddhi.trading.equities.domain.getordersbyid.OrderFillStatus;
 import com.samruddhi.trading.equities.logic.base.OptionOrderProcessor;
@@ -28,7 +29,9 @@ import static com.samruddhi.trading.equities.logic.OptionOrderFillStatus.*;
 
 public class TradeWorker implements Callable<TradeWorkerStatus> {
 
+
     private static final OrderFillStatus ORDER_FILLSTATUS_FAILED = new OrderFillStatus("0", ORDER_STATUS_FAILED, 0.0, 0, "");
+
     private enum CurrentStatus {
         UPTREND, DOWNTREND, CALL_HELD, PUT_HELD, NO_STATUS;
     }
@@ -53,14 +56,19 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
      */
     private PreviousEmas previousEmas;
 
-    /** What's my curent status ie UPTREND, DOWNTREND, CALL_HELD, PUT_HELD, NO_STATUS, storeed for chgecking worker status easily
+    /**
+     * What's my curent status ie UPTREND, DOWNTREND, CALL_HELD, PUT_HELD, NO_STATUS, storeed for chgecking worker status easily
      */
     private CurrentStatus currentStatus;
 
-    /** Details of order fill status that came from ORDER*/
+    /**
+     * Details of order fill status that came from ORDER
+     */
     private OrderFillStatus currentOrderFillStatus;
 
-    /** Keeps track of all Finished trades in this worker and also worker status */
+    /**
+     * Keeps track of all Finished trades in this worker and also worker status
+     */
     private TradeWorkerStatus tradeWorkerStatus;
 
     private OptionOrderProcessor optionOrderProcessor;
@@ -158,17 +166,19 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
 
     }
 
-    /** Save status to indicate that something has been bought (call or put) */
+    /**
+     * Save status to indicate that something has been bought (call or put)
+     */
     private void saveBuyStatus(OrderFillStatus orderFillStatus, boolean isCall) throws Exception {
-        if(orderFillStatus.getStatus() != ORDER_STATUS_FILLED) {
-            if(isCall)
+        if (orderFillStatus.getStatus() != ORDER_STATUS_FILLED) {
+            if (isCall)
                 currentStatus = CurrentStatus.CALL_HELD;
             else
                 currentStatus = CurrentStatus.PUT_HELD;
 
             currentOrderFillStatus = orderFillStatus;
-        } else  if(orderFillStatus.getStatus() != ORDER_STATUS_OPEN) {
-           // TO DO -  optionOrderProcessor.cancelOrder(orderFillStatus.orderId);
+        } else if (orderFillStatus.getStatus() != ORDER_STATUS_OPEN) {
+            // TO DO -  optionOrderProcessor.cancelOrder(orderFillStatus.orderId);
             optionOrderProcessor.cancelOrder(orderFillStatus.getOrderId());
             currentStatus = CurrentStatus.NO_STATUS;
         }
@@ -189,7 +199,7 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
             orderFillStatus = switch (callOrPut) {
                 case 'C' -> optionOrderProcessor.processCallBuyOrder(nextStrikePrice, ticker, price);
                 case 'P' -> optionOrderProcessor.processPutBuyOrder(nextStrikePrice, ticker, price);
-                default ->  ORDER_FILLSTATUS_FAILED;
+                default -> ORDER_FILLSTATUS_FAILED;
             };
         } catch (Exception e) {
             logger.error("Error in initiateCallOrPutBuying {}", e.getMessage());
@@ -198,7 +208,8 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
         return orderFillStatus;
     }
 
-    /** This when we already hold a call and need to sell it as trend is reversing or we need to trim due to meeting target price
+    /**
+     * This when we already hold a call and need to sell it as trend is reversing or we need to trim due to meeting target price
      *
      * @param minuteBars
      * @param dailyBars
@@ -218,11 +229,14 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
         // Validate RSI and VWAP,
         double rsi = RSICalculator.calculateRSI(dailyBars.subList(36, dailyBars.size()), 14);
         boolean isRsiBullish = rsi > 40; // Fix me
-        // END TO DO duplicated work fix me
 
-        if (ema5 < ema50 && ema5 < ema13 && !isMacdBullish) {
+        // END TO DO duplicated work fix me
+        if ((ema5 < ema50 && ema5 < ema13 && !isMacdBullish) ||
+                (TradeWorkerPriceHelper.hasDroppedByGivenPercentage(currentOrderFillStatus, minuteBars.getLast(), ConfigManager.getInstance().getAcceptablePriceDropPercent(currentOrderFillStatus.getTicker())))) {
             // TO DO We need to sell this call Asap
+            // place a sell order and wait for completion of Order
             currentStatus = CurrentStatus.NO_STATUS;
+
         }
     }
 
