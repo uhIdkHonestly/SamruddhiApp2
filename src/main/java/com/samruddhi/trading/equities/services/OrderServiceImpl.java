@@ -1,107 +1,128 @@
 package com.samruddhi.trading.equities.services;
 
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.Scanner;
-
+import com.samruddhi.trading.equities.config.ConfigManager;
 import com.samruddhi.trading.equities.domain.PlaceOrderPayload;
 import com.samruddhi.trading.equities.domain.placeorder.PlaceOrderResponse;
 import com.samruddhi.trading.equities.services.base.OrderService;
 import common.JsonParser;
+import okhttp3.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 public class OrderServiceImpl implements OrderService {
     private static final Logger logger = LoggerFactory.getLogger(OrderServiceImpl.class);
     private String PLACE_ORDER_URL = "https://api.tradestation.com/v3/orderexecution/orders";
     private String CANCEL_ORDER_URL = "https://api.tradestation.com/v3/orderexecution/orders/%s";
 
-    public PlaceOrderResponse placeOrder(PlaceOrderPayload order) throws Exception {
+    // TO DO fix me with proper option ticker and Limit order
+    /**
+     * {
+     * "AccountID": "123456782",
+     * "Symbol": "MSFT",
+     * "Quantity": "10",
+     * "OrderType": "Market",
+     * "TradeAction": "BUY",
+     * "TimeInForce": {
+     * "Duration": "DAY"
+     * },
+     * "Route": "Intelligent"
+     * }
+     */
+    private final String PAYLOAD_STR = "{"
+            + "\"AccountID\": \"%S\","
+            + "\"Symbol\": \"%S\","
+            + "\"Quantity\": \"%s\","
+            + "\"OrderType\": \"%S\","
+            + "\"TradeAction\": \"%S\","
+            + "\"TimeInForce\": {\"Duration\": \"DAY\"},"
+            + "\"Route\": \"Intelligent\""
+            + "}";
 
+    /**
+     * Send an Option buy order to the broker
+     */
+    public PlaceOrderResponse placeOrder(PlaceOrderPayload orderPayload) throws Exception {
 
-        // TO DO fix me with proper option ticker and Limit order
-        /**
-         * {
-         * "AccountID": "123456782",
-         * "Symbol": "MSFT",
-         * "Quantity": "10",
-         * "OrderType": "Market",
-         * "TradeAction": "BUY",
-         * "TimeInForce": {
-         * "Duration": "DAY"
-         * },
-         * "Route": "Intelligent"
-         * }
-         */
-        String payload = "{"
-                + "\"AccountID\": \"%S\","
-                + "\"Symbol\": \"%S\","
-                + "\"Quantity\": \"%s\","
-                + "\"OrderType\": \"%S\","
-                + "\"TradeAction\": \"%S\","
-                + "\"TimeInForce\": {\"Duration\": \"DAY\"},"
-                + "\"Route\": \"Intelligent\""
-                + "}";
-        String token = TradeStationAuthImpl.getInstance().getAccessToken().get(); // Replace TOKEN with your actual token
+        OkHttpClient client = new OkHttpClient();
+        MediaType JSON = MediaType.get("application/json; charset=utf-8");
 
-        try {
-            URL url = new URL(PLACE_ORDER_URL);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("POST");
-            connection.setRequestProperty("Content-Type", "application/json");
-            connection.setRequestProperty("Authorization", "Bearer " + token);
-            connection.setDoOutput(true);
+        // Create request body with specified media type and JSON payload
+        RequestBody body = RequestBody.create(formatPayload(orderPayload), JSON);
 
-            try (OutputStream os = connection.getOutputStream()) {
-                byte[] input = payload.getBytes("utf-8");
-                os.write(input, 0, input.length);
-            }
+        String token = TradeStationAuthImpl.getInstance().getAccessToken().get();
 
-            StringBuilder response = new StringBuilder();
-            try (Scanner scanner = new Scanner(connection.getInputStream())) {
+        Request request = new Request.Builder()
+                .url(PLACE_ORDER_URL)
+                .post(body) // Set the request method to POST and provide the request body
+                .header("Content-Type", "application/json")
+                .header("Authorization", "Bearer " + token)
+                .build();
 
-                while (scanner.hasNextLine()) {
-                    response.append(scanner.nextLine());
-                    response.append("\n");
-                }
-                logger.info("Response from server: " + response.toString());
+        try (Response response = client.newCall(request).execute()) {
+            String responseBody = response.body().string();
+            System.out.println("Response Body: " + response.body().string());
+            if (response.code() != HttpURLConnection.HTTP_OK) {
+                // Handle other response codes or errors
+                logger.info(response.body().string());
+                throw new Exception("Buy Request failed with HTTP code: " + response.code() + response.body().string());
             }
             return JsonParser.getPlaceOrderResponse(response.toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw e;
+        }
+    }
 
+    /**
+     * Cancel an existing Option buy order
+     */
+    @Override
+    public void cancelOrder(String orderId) throws Exception {
+        String token = TradeStationAuthImpl.getInstance().getAccessToken().get();
+
+        try {
+            OkHttpClient client = new OkHttpClient();
+            URL url = new URL(String.format(CANCEL_ORDER_URL, orderId));
+            Request request = new Request.Builder()
+                    .url(url)
+                    .header("Content-Type", "application/json") // Add Content-Type header
+                    .header("Authorization", "Bearer " + token)// Add Authorization header
+                    .delete() // This is where we specify the HTTP method DELETE
+                    .build();
+
+            try (Response response = client.newCall(request).execute()) {
+                if (response.code() != HttpURLConnection.HTTP_OK) {
+                    // Handle other response codes or errors
+                    logger.info(response.body().string());
+                    throw new Exception("Request failed with HTTP code: " + response.code() + response.body().string());
+                }
+            }
         } catch (Exception e) {
             e.printStackTrace();
             throw e;
         }
     }
 
-    @Override
-    public void cancelOrder(String orderId) throws Exception {
-        String token = TradeStationAuthImpl.getInstance().getAccessToken().get(); // Replace TOKEN with your actual token
-
-        try {
-            URL url = new URL(String.format(CANCEL_ORDER_URL, orderId));
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("DELETE");
-            connection.setRequestProperty("Content-Type", "application/json");
-            connection.setRequestProperty("Authorization", "Bearer " + token);
-            connection.connect();
-
-            // Get the response code
-            int responseCode = connection.getResponseCode();
-
-            logger.info("Response Code: " + responseCode);
-            // Optional: Handle the response code or response data
-            if (responseCode != HttpURLConnection.HTTP_OK) {
-
-                // Handle other response codes or errors
-                throw new Exception("Request failed with HTTP code: " + responseCode);
-            }
-
-            connection.disconnect();
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw e;
-        }
+    private String formatPayload(PlaceOrderPayload payload) {
+        String payloadStr = "{"
+                + "\"AccountID\": \"%s\","
+                + "\"Symbol\": \"%s\","
+                + "\"Quantity\": \"%s\","
+                + "\"OrderType\": \"%s\","
+                + "\"TradeAction\": \"%s\","
+                + "\"TimeInForce\": {\"Duration\": \"DAY\"},"
+                + "\"Route\": \"Intelligent\""
+                + "}";
+        String formattedMessage = String.format(PAYLOAD_STR, ConfigManager.getInstance().getProperty("account.id"),
+                payload.getSymbol(),
+                payload.getQuantity(),
+                payload.getOrderType(),
+                payload.getTradeAction());
+        logger.info("Payload: {}", payload);
+        return formattedMessage;
     }
 }

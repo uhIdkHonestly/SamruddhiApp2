@@ -52,7 +52,7 @@ public class MarketDataServiceImpl implements MarketDataService {
                 logger.info(responseBody);
                 return JsonParser.getListOfBars(responseBody);
             } else {
-                System.err.println("Error: HTTP status code " + response.statusCode());
+                logger.error("Error: HTTP status code " + response.statusCode());
             }
 
         } catch (Exception e) {
