@@ -27,4 +27,13 @@ public class NextStrikePrice {
     public void setDateWithStrike(String dateWithStrike) {
         this.dateWithStrike = dateWithStrike;
     }
+
+    @Override
+    public String toString() {
+        return "NextStrikePrice{" +
+                "fullOptionTicker='" + fullOptionTicker + '\'' +
+                ", dateWithStrike='" + dateWithStrike + '\'' +
+                ", underlying='" + underlying + '\'' +
+                '}';
+    }
 }

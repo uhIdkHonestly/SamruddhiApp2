@@ -208,13 +208,29 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
         return orderFillStatus;
     }
 
+    private OrderFillStatus initiateCallOrPutSelling(String ticker, double price, char callOrPut) throws Exception {
+        OrderFillStatus orderFillStatus = ORDER_FILLSTATUS_FAILED;
+        try {
+            NextStrikePrice nextStrikePrice = OptionTickerProvider.getNextOptionTicker(ticker, price, callOrPut);
+            orderFillStatus = switch (callOrPut) {
+                case 'C' -> optionOrderProcessor.processCallSellOrder(nextStrikePrice, ticker, price);
+                case 'P' -> optionOrderProcessor.processPutSellOrder(nextStrikePrice, ticker, price);
+                default -> ORDER_FILLSTATUS_FAILED;
+            };
+        } catch (Exception e) {
+            logger.error("Error in initiateCallOrPutBuying {}", e.getMessage());
+            throw e;
+        }
+        return orderFillStatus;
+    }
+
     /**
      * This when we already hold a call and need to sell it as trend is reversing or we need to trim due to meeting target price
      *
      * @param minuteBars
      * @param dailyBars
      */
-    private void determineCallSellPoint(List<Bar> minuteBars, List<Bar> dailyBars) {
+    private void determineCallSellPoint(List<Bar> minuteBars, List<Bar> dailyBars) throws Exception{
 
         // TO DO duplicated work fix me
         double ema5 = EMACalculator.calculateEMAs(dailyBars, 5);
@@ -231,12 +247,15 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
         boolean isRsiBullish = rsi > 40; // Fix me
 
         // END TO DO duplicated work fix me
-        if ((ema5 < ema50 && ema5 < ema13 && !isMacdBullish) ||
-                (TradeWorkerPriceHelper.hasDroppedByGivenPercentage(currentOrderFillStatus, minuteBars.getLast(), ConfigManager.getInstance().getAcceptablePriceDropPercent(currentOrderFillStatus.getTicker())))) {
+        if ((ema5 < ema50 || ema5 < ema13 && !isMacdBullish) ||
+                (TradeWorkerPriceHelper.hasDroppedByGivenPercentage(currentOrderFillStatus, minuteBars.get(minuteBars.size()-1), ConfigManager.getInstance().getAcceptablePriceDropPercent(currentOrderFillStatus.getTicker())))) {
             // TO DO We need to sell this call Asap
-            // place a sell order and wait for completion of Order
-            currentStatus = CurrentStatus.NO_STATUS;
 
+            OrderFillStatus orderrFillStatus = initiateCallOrPutSelling(ticker, dailyBars.get(dailyBars.size() - 1).getClose(), 'C');
+            // TO DO Store daily completed transactions in TradeWorkerStatus
+            // place a sell order and wait for completion of Order
+            // Need to do more work procssing status similar to saveBuyStatus
+            currentStatus = CurrentStatus.NO_STATUS;
         }
     }
 
