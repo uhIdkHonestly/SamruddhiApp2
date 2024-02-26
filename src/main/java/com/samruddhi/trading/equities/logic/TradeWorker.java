@@ -257,7 +257,6 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
         double rsi = RSICalculator.calculateRSI(dailyBars.subList(36, dailyBars.size()), 14);
         boolean isRsiBullish = rsi > 40; // Fix me
 
-        // END TO DO duplicated work fix me
         if ((ema5 < ema50 || ema5 < ema13 && !isMacdBullish) ||
                 (TradeWorkerPriceHelper.hasDroppedByGivenPercentage(currentOrderFillStatus, minuteBars.get(minuteBars.size()-1), ConfigManager.getInstance().getAcceptablePriceDropPercent(currentOrderFillStatus.getTicker())))) {
             // TO DO We need to sell this call Asap
@@ -266,8 +265,16 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
             // TO DO Store daily completed transactions in TradeWorkerStatus
             // place a sell order and wait for completion of Order
             // Need to do more work procssing status similar to saveBuyStatus
+            if(orderrFillStatus.getStatus() != ORDER_STATUS_OPEN) // To DO
+                repeatUntilSold();
+
             currentStatus = CurrentStatus.NO_STATUS;
         }
+    }
+
+    private OrderFillStatus  repeatUntilSold() throws Exception {
+        // TO DO
+        return OrderFillStatus.ORDER_FILL_STATUS_FAILED;
     }
 
     private void determinePutsSellPoint(List<Bar> minuteBars, List<Bar> dailyBars) {

@@ -32,7 +32,12 @@ public class OrderServiceImpl implements OrderService {
      * "Route": "Intelligent"
      * }
      */
-    private final String PAYLOAD_STR = "{"
+    private final String PAYLOAD_POST_STR = "{\n" +
+            "\"Quantity\": \"%s\",\n" +
+            "\"LimitPrice\": \"%s\"\n" +
+            "}";
+
+    private final String PAYLOAD_PUT_STR = "{"
             + "\"AccountID\": \"%S\","
             + "\"Symbol\": \"%S\","
             + "\"Quantity\": \"%s\","
@@ -41,7 +46,6 @@ public class OrderServiceImpl implements OrderService {
             + "\"TimeInForce\": {\"Duration\": \"DAY\"},"
             + "\"Route\": \"Intelligent\""
             + "}";
-
     /**
      * Send an Option buy order to the broker
      */
@@ -107,6 +111,11 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
+    public PlaceOrderResponse updateOrder(String orderId, int quantity) throws Exception {
+        // TO DO
+        return null;
+    }
+
     private String formatPayload(PlaceOrderPayload payload) {
         String payloadStr = "{"
                 + "\"AccountID\": \"%s\","
@@ -117,7 +126,7 @@ public class OrderServiceImpl implements OrderService {
                 + "\"TimeInForce\": {\"Duration\": \"DAY\"},"
                 + "\"Route\": \"Intelligent\""
                 + "}";
-        String formattedMessage = String.format(PAYLOAD_STR, ConfigManager.getInstance().getProperty("account.id"),
+        String formattedMessage = String.format(PAYLOAD_POST_STR, ConfigManager.getInstance().getProperty("account.id"),
                 payload.getSymbol(),
                 payload.getQuantity(),
                 payload.getOrderType(),

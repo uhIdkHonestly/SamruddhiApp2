@@ -182,4 +182,9 @@ public class OptionOrderProcessorImpl implements OptionOrderProcessor {
     public void cancelOrder(String orderId) throws Exception {
         orderService.cancelOrder(orderId);
     }
+
+    @Override
+    public OrderFillStatus processReplaceCallSellOrder(NextStrikePrice nextStrikePrice, String ticker, double price) throws Exception {
+        return null;
+    }
 }
