@@ -1,5 +1,8 @@
 package com.samruddhi.trading.equities.domain;
 
+/**
+ * This class holds full Option ticker, but not the price
+ */
 public class NextStrikePrice {
     String fullOptionTicker;
     String dateWithStrike;

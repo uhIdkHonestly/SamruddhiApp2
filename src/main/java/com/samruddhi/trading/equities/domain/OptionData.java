@@ -228,8 +228,8 @@ public class OptionData {
         this.bid = bid;
     }
 
-    public String getMid() {
-        return mid;
+    public double getMid() {
+        return Double.valueOf(mid);
     }
 
     public void setMid(String mid) {

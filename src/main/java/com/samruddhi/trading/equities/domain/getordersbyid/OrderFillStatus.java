@@ -4,6 +4,10 @@ import com.samruddhi.trading.equities.logic.OptionOrderFillStatus;
 
 public class OrderFillStatus {
 
+    public static final OrderFillStatus ORDER_FILL_STATUS_FAILED = new OrderFillStatus("0", "FAILED", 0.0, 0, "");
+    /** we abort as contrat price is not right */
+    public static final OrderFillStatus ORDER_FILL_STATUS_ABORTED = new OrderFillStatus("0", "ABORTED", 0.0, 0, "");
+
     String orderId;
     OptionOrderFillStatus status;
     double fillPrice;

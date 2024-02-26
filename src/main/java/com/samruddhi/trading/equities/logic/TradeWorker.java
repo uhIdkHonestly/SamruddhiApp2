@@ -11,6 +11,7 @@ import com.samruddhi.trading.equities.config.ConfigManager;
 import com.samruddhi.trading.equities.domain.NextStrikePrice;
 import com.samruddhi.trading.equities.domain.getordersbyid.OrderFillStatus;
 import com.samruddhi.trading.equities.logic.base.OptionOrderProcessor;
+import com.samruddhi.trading.equities.orderlimits.OptionTickerProvider;
 import com.samruddhi.trading.equities.services.StreamingOptionQuoteServiceImpl;
 import com.samruddhi.trading.equities.services.base.StreamingOptionQuoteService;
 import org.slf4j.Logger;
@@ -29,6 +30,9 @@ import static com.samruddhi.trading.equities.logic.OptionOrderFillStatus.*;
 
 public class TradeWorker implements Callable<TradeWorkerStatus> {
 
+    // We allow upto 3 exceptions per Ticker in the TradeWorker
+    private final int MAX_ALLOWED_EXCEPTION_COUNT = 3;
+    private int currentExceptionCount = 0;
 
     private static final OrderFillStatus ORDER_FILLSTATUS_FAILED = new OrderFillStatus("0", ORDER_STATUS_FAILED, 0.0, 0, "");
 
@@ -115,10 +119,17 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
                 } catch (InterruptedException e) {
                     logger.info("Task interrupted.");
                     Thread.currentThread().interrupt(); // Preserve interrupt status
+                    currentExceptionCount++;
                 } catch (Exception e) {
-                    logger.info("Error during task execution: " + e.getMessage());
+                    logger.info("Error during task execution: Perhaps we can see if things improve next minute" + e.getMessage());
+                    currentExceptionCount++;
                     // Optional: Decide if you want to interrupt the thread and stop the task
                 }
+            }
+            // Well if we get repetaed exceptions then we terminate this Thread and Ticker for the day!!!
+            if(currentExceptionCount > MAX_ALLOWED_EXCEPTION_COUNT) {
+                logger.info("Terminating the TradeWorker for {} due to repeated {} errors", ticker, currentExceptionCount);
+                isTerminated = true;
             }
         }
         return null;

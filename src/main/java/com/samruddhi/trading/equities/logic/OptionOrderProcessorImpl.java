@@ -15,6 +15,7 @@ import com.samruddhi.trading.equities.domain.getordersbyid.OrderFillStatus;
 import com.samruddhi.trading.equities.domain.placeorder.PlaceOrderResponse;
 import com.samruddhi.trading.equities.exceptions.CallOrderException;
 import com.samruddhi.trading.equities.logic.base.OptionOrderProcessor;
+import com.samruddhi.trading.equities.orderlimits.ContractMaxPrice;
 import com.samruddhi.trading.equities.services.GetOrdersByOrderIdServiceImpl;
 import com.samruddhi.trading.equities.services.OrderServiceImpl;
 import com.samruddhi.trading.equities.services.StreamingOptionQuoteServiceImpl;
@@ -73,12 +74,24 @@ public class OptionOrderProcessorImpl implements OptionOrderProcessor {
         return processCallOrder(CALL_SELL_ORDER, nextStrikePrice, ticker, price);
     }
 
-    /**
-     * Place CALL buy Or Sell order
+    /**Place CALL buy Or Sell order
+     *
+     * @param buyOrSellAction Indicates if we are Buying or Selling
+     * @param nextStrikePrice
+     * @param ticker
+     * @param price
+     * @return
+     * @throws Exception
      */
+
     private OrderFillStatus processCallOrder(String buyOrSellAction, NextStrikePrice nextStrikePrice, String ticker, double price) throws Exception {
         // Place call BUY
         OptionData optionData = streamingOptionQuoteService.getOptionQuote(ticker, nextStrikePrice.getDateWithStrike());
+
+        // Check if below allowed max for Option contract
+        if(!ContractMaxPrice.validateMaxContractPriceByTicker(ticker, optionData.getMid(), price))
+            return OrderFillStatus.ORDER_FILL_STATUS_ABORTED;
+
         double callLimitPrice = getCallOrderPlacementPrice(optionData);
 
         PlaceOrderPayload payload = new PlaceOrderPayload();
@@ -97,7 +110,6 @@ public class OptionOrderProcessorImpl implements OptionOrderProcessor {
         OrderFillStatus orderFillStatus = waitForOrderFill(orderId);
         return orderFillStatus;
     }
-
 
     @Override
     public OrderFillStatus processPutBuyOrder(NextStrikePrice nextStrikePrice, String ticker, double price) {
