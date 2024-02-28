@@ -13,6 +13,7 @@ import com.samruddhi.trading.equities.domain.getordersbyid.Leg;
 import com.samruddhi.trading.equities.domain.getordersbyid.Order;
 import com.samruddhi.trading.equities.domain.getordersbyid.OrderFillStatus;
 import com.samruddhi.trading.equities.domain.placeorder.PlaceOrderResponse;
+import com.samruddhi.trading.equities.domain.updateorder.UpdateOrderResponse;
 import com.samruddhi.trading.equities.exceptions.CallOrderException;
 import com.samruddhi.trading.equities.logic.base.OptionOrderProcessor;
 import com.samruddhi.trading.equities.orderlimits.ContractMaxPrice;
@@ -184,7 +185,16 @@ public class OptionOrderProcessorImpl implements OptionOrderProcessor {
     }
 
     @Override
-    public OrderFillStatus processReplaceCallSellOrder(NextStrikePrice nextStrikePrice, String ticker, double price) throws Exception {
-        return null;
+    public OrderFillStatus processReplaceCallSellOrder(String orderId, NextStrikePrice nextStrikePrice, String ticker, double price) throws Exception {
+
+        OrderFillStatus orderFillStatus = null;
+        while(orderFillStatus.getStatus() == null || orderFillStatus.getStatus() == ORDER_STATUS_OPEN) {
+            OptionData optionData = streamingOptionQuoteService.getOptionQuote(ticker, nextStrikePrice.getDateWithStrike());
+            double callLimitPrice = getCallOrderPlacementPrice(optionData);
+            UpdateOrderResponse updateOrderResponse = orderService.updateOrder(orderId, callLimitPrice);
+            orderFillStatus = checkOrderFillStatus(orderId);
+        }
+        // TO DO what if order never fills
+        return orderFillStatus;
     }
 }

@@ -3,6 +3,7 @@ package com.samruddhi.trading.equities.services;
 import com.samruddhi.trading.equities.config.ConfigManager;
 import com.samruddhi.trading.equities.domain.PlaceOrderPayload;
 import com.samruddhi.trading.equities.domain.placeorder.PlaceOrderResponse;
+import com.samruddhi.trading.equities.domain.updateorder.UpdateOrderResponse;
 import com.samruddhi.trading.equities.services.base.OrderService;
 import common.JsonParser;
 import okhttp3.*;
@@ -32,17 +33,17 @@ public class OrderServiceImpl implements OrderService {
      * "Route": "Intelligent"
      * }
      */
-    private final String PAYLOAD_POST_STR = "{\n" +
+    private final String PAYLOAD_PUT_STR = "{\n" +
             "\"Quantity\": \"%s\",\n" +
             "\"LimitPrice\": \"%s\"\n" +
             "}";
 
-    private final String PAYLOAD_PUT_STR = "{"
-            + "\"AccountID\": \"%S\","
-            + "\"Symbol\": \"%S\","
+    String PAYLOAD_POST_STR = "{"
+            + "\"AccountID\": \"%s\","
+            + "\"Symbol\": \"%s\","
             + "\"Quantity\": \"%s\","
-            + "\"OrderType\": \"%S\","
-            + "\"TradeAction\": \"%S\","
+            + "\"OrderType\": \"%s\","
+            + "\"TradeAction\": \"%s\","
             + "\"TimeInForce\": {\"Duration\": \"DAY\"},"
             + "\"Route\": \"Intelligent\""
             + "}";
@@ -111,21 +112,40 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
-    public PlaceOrderResponse updateOrder(String orderId, int quantity) throws Exception {
-        // TO DO
-        return null;
+        public UpdateOrderResponse updateOrder(String orderId, double limitPrice) throws Exception {
+
+        OkHttpClient client = new OkHttpClient();
+
+        String token = TradeStationAuthImpl.getInstance().getAccessToken().get();
+        // Define MediaType for the request body
+        MediaType JSON = MediaType.get("application/json; charset=utf-8");
+
+        // Create request body
+        String jsonBody = String.format(PAYLOAD_PUT_STR, orderId, limitPrice);
+        RequestBody body = RequestBody.create(jsonBody, JSON);
+
+        // Build PUT request
+        Request request = new Request.Builder()
+                .url(PLACE_ORDER_URL) // Replace with your URL
+                .header("Content-Type", "application/json")
+                .header("Authorization", "Bearer " + token)
+                .build();
+
+        // Execute the request
+        try (Response response = client.newCall(request).execute()) {
+
+            if (response.code() != HttpURLConnection.HTTP_OK) {
+                // Handle other response codes or errors
+                logger.info(response.body().string());
+                throw new Exception("Update Request failed with HTTP code: " + response.code() + response.body().string());
+            }
+            // Handle the response as needed
+            return JsonParser.getUpdateOrderResponse(response.toString());
+        }
     }
 
     private String formatPayload(PlaceOrderPayload payload) {
-        String payloadStr = "{"
-                + "\"AccountID\": \"%s\","
-                + "\"Symbol\": \"%s\","
-                + "\"Quantity\": \"%s\","
-                + "\"OrderType\": \"%s\","
-                + "\"TradeAction\": \"%s\","
-                + "\"TimeInForce\": {\"Duration\": \"DAY\"},"
-                + "\"Route\": \"Intelligent\""
-                + "}";
+
         String formattedMessage = String.format(PAYLOAD_POST_STR, ConfigManager.getInstance().getProperty("account.id"),
                 payload.getSymbol(),
                 payload.getQuantity(),

@@ -261,11 +261,11 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
                 (TradeWorkerPriceHelper.hasDroppedByGivenPercentage(currentOrderFillStatus, minuteBars.get(minuteBars.size()-1), ConfigManager.getInstance().getAcceptablePriceDropPercent(currentOrderFillStatus.getTicker())))) {
             // TO DO We need to sell this call Asap
 
-            OrderFillStatus orderrFillStatus = initiateCallOrPutSelling(ticker, dailyBars.get(dailyBars.size() - 1).getClose(), 'C');
+            OrderFillStatus orderFillStatus = initiateCallOrPutSelling(ticker, dailyBars.get(dailyBars.size() - 1).getClose(), 'C');
             // TO DO Store daily completed transactions in TradeWorkerStatus
             // place a sell order and wait for completion of Order
             // Need to do more work procssing status similar to saveBuyStatus
-            if(orderrFillStatus.getStatus() != ORDER_STATUS_OPEN) // To DO
+            if(orderFillStatus.getStatus() != ORDER_STATUS_OPEN) // To DO
                 repeatUntilSold();
 
             currentStatus = CurrentStatus.NO_STATUS;

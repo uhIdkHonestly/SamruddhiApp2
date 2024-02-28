@@ -9,6 +9,7 @@ import com.samruddhi.trading.equities.domain.OptionData;
 import com.samruddhi.trading.equities.domain.getorders.GetOrdersResponse;
 import com.samruddhi.trading.equities.domain.getordersbyid.GetOrdersByOrderIdResponse;
 import com.samruddhi.trading.equities.domain.placeorder.PlaceOrderResponse;
+import com.samruddhi.trading.equities.domain.updateorder.UpdateOrderResponse;
 
 import java.util.Collections;
 import java.util.List;
@@ -72,4 +73,11 @@ public class JsonParser {
         GetOrdersByOrderIdResponse getOrdersResponse = mapper.readValue(jsonString, GetOrdersByOrderIdResponse.class);
         return getOrdersResponse;
     }
+
+    public static UpdateOrderResponse getUpdateOrderResponse(String jsonString) throws JsonProcessingException {
+        ObjectMapper mapper = new ObjectMapper();
+        UpdateOrderResponse updateOrderResponse = mapper.readValue(jsonString, UpdateOrderResponse.class);
+        return updateOrderResponse;
+    }
+
 }
