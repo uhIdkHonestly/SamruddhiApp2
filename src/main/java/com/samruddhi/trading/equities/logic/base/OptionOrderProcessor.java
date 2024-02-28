@@ -4,12 +4,12 @@ import com.samruddhi.trading.equities.domain.NextStrikePrice;
 import com.samruddhi.trading.equities.domain.getordersbyid.OrderFillStatus;
 
 public interface OptionOrderProcessor {
-    public OrderFillStatus processCallBuyOrder(NextStrikePrice nextStrikePrice, String ticker, double price) throws Exception;
-    public OrderFillStatus processCallSellOrder(NextStrikePrice nextStrikePrice, String ticker, double price) throws Exception;
-    public OrderFillStatus processReplaceCallSellOrder(String orderId, NextStrikePrice nextStrikePrice, String ticker, double price) throws Exception;
+    public OrderFillStatus createCallBuyOrder(NextStrikePrice nextStrikePrice, String ticker, double price) throws Exception;
+    public OrderFillStatus createCallSellOrder(NextStrikePrice nextStrikePrice, String ticker, double price) throws Exception;
+    public OrderFillStatus replaceCallSellOrder(String orderId, NextStrikePrice nextStrikePrice, String ticker, double price) throws Exception;
 
-    public OrderFillStatus processPutBuyOrder(NextStrikePrice nextStrikePrice, String ticker, double price) throws Exception;
-    public OrderFillStatus processPutSellOrder(NextStrikePrice nextStrikePrice, String ticker, double price) throws Exception;
+    public OrderFillStatus createPutBuyOrder(NextStrikePrice nextStrikePrice, String ticker, double price) throws Exception;
+    public OrderFillStatus createPutSellOrder(NextStrikePrice nextStrikePrice, String ticker, double price) throws Exception;
 
     public void cancelOrder(String orderId) throws Exception;
 }

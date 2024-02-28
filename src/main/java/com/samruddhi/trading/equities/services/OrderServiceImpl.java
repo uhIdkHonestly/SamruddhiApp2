@@ -94,14 +94,13 @@ public class OrderServiceImpl implements OrderService {
             URL url = new URL(String.format(CANCEL_ORDER_URL, orderId));
             Request request = new Request.Builder()
                     .url(url)
-                    .header("Content-Type", "application/json") // Add Content-Type header
-                    .header("Authorization", "Bearer " + token)// Add Authorization header
-                    .delete() // This is where we specify the HTTP method DELETE
+                    .header("Content-Type", "application/json")
+                    .header("Authorization", "Bearer " + token)
+                    .delete()
                     .build();
 
             try (Response response = client.newCall(request).execute()) {
                 if (response.code() != HttpURLConnection.HTTP_OK) {
-                    // Handle other response codes or errors
                     logger.info(response.body().string());
                     throw new Exception("Request failed with HTTP code: " + response.code() + response.body().string());
                 }
@@ -112,7 +111,7 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
-        public UpdateOrderResponse updateOrder(String orderId, double limitPrice) throws Exception {
+    public UpdateOrderResponse updateOrder(String orderId, double limitPrice) throws Exception {
 
         OkHttpClient client = new OkHttpClient();
 

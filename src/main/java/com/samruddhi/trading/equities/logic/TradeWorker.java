@@ -25,6 +25,7 @@ import com.samruddhi.trading.equities.studies.EMACalculator;
 import com.samruddhi.trading.equities.studies.MACDCalculator;
 import com.samruddhi.trading.equities.studies.RSICalculator;
 
+import static com.samruddhi.trading.equities.domain.getordersbyid.OrderFillStatus.ORDER_FILL_STATUS_FAILED;
 import static com.samruddhi.trading.equities.logic.OptionOrderFillStatus.*;
 
 
@@ -33,8 +34,6 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
     // We allow upto 3 exceptions per Ticker in the TradeWorker
     private final int MAX_ALLOWED_EXCEPTION_COUNT = 3;
     private int currentExceptionCount = 0;
-
-    private static final OrderFillStatus ORDER_FILLSTATUS_FAILED = new OrderFillStatus("0", ORDER_STATUS_FAILED, 0.0, 0, "");
 
     private enum CurrentStatus {
         UPTREND, DOWNTREND, CALL_HELD, PUT_HELD, NO_STATUS;
@@ -201,16 +200,16 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
      * 3) Place Order for desired Option quantity (say 2 to 5)
      * 4) track status
      *
-     * @param ticker
+     * @param ticker = Underlying ticker not Option ticker with strike
      */
     private OrderFillStatus initiateCallOrPutBuying(String ticker, double price, char callOrPut) throws Exception {
-        OrderFillStatus orderFillStatus = ORDER_FILLSTATUS_FAILED;
+        OrderFillStatus orderFillStatus = ORDER_FILL_STATUS_FAILED;
         try {
             NextStrikePrice nextStrikePrice = OptionTickerProvider.getNextOptionTicker(ticker, price, callOrPut);
             orderFillStatus = switch (callOrPut) {
-                case 'C' -> optionOrderProcessor.processCallBuyOrder(nextStrikePrice, ticker, price);
-                case 'P' -> optionOrderProcessor.processPutBuyOrder(nextStrikePrice, ticker, price);
-                default -> ORDER_FILLSTATUS_FAILED;
+                case 'C' -> optionOrderProcessor.createCallBuyOrder(nextStrikePrice, ticker, price);
+                case 'P' -> optionOrderProcessor.createPutBuyOrder(nextStrikePrice, ticker, price);
+                default -> ORDER_FILL_STATUS_FAILED;
             };
         } catch (Exception e) {
             logger.error("Error in initiateCallOrPutBuying {}", e.getMessage());
@@ -219,14 +218,13 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
         return orderFillStatus;
     }
 
-    private OrderFillStatus initiateCallOrPutSelling(String ticker, double price, char callOrPut) throws Exception {
-        OrderFillStatus orderFillStatus = ORDER_FILLSTATUS_FAILED;
+    private OrderFillStatus initiateCallOrPutSelling(NextStrikePrice nextStrikePrice, String ticker, double price, char callOrPut) throws Exception {
+        OrderFillStatus orderFillStatus = ORDER_FILL_STATUS_FAILED;
         try {
-            NextStrikePrice nextStrikePrice = OptionTickerProvider.getNextOptionTicker(ticker, price, callOrPut);
             orderFillStatus = switch (callOrPut) {
-                case 'C' -> optionOrderProcessor.processCallSellOrder(nextStrikePrice, ticker, price);
-                case 'P' -> optionOrderProcessor.processPutSellOrder(nextStrikePrice, ticker, price);
-                default -> ORDER_FILLSTATUS_FAILED;
+                case 'C' -> optionOrderProcessor.createCallSellOrder(nextStrikePrice, ticker, price);
+                case 'P' -> optionOrderProcessor.createPutSellOrder(nextStrikePrice, ticker, price);
+                default -> ORDER_FILL_STATUS_FAILED;
             };
         } catch (Exception e) {
             logger.error("Error in initiateCallOrPutBuying {}", e.getMessage());
@@ -260,21 +258,22 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
         if ((ema5 < ema50 || ema5 < ema13 && !isMacdBullish) ||
                 (TradeWorkerPriceHelper.hasDroppedByGivenPercentage(currentOrderFillStatus, minuteBars.get(minuteBars.size()-1), ConfigManager.getInstance().getAcceptablePriceDropPercent(currentOrderFillStatus.getTicker())))) {
             // TO DO We need to sell this call Asap
-
-            OrderFillStatus orderFillStatus = initiateCallOrPutSelling(ticker, dailyBars.get(dailyBars.size() - 1).getClose(), 'C');
+            NextStrikePrice nextStrikePrice = OptionTickerProvider.getNextOptionTicker(ticker, dailyBars.get(dailyBars.size() - 1).getClose(), 'C');
+            // CHeck here and other places,  if using Daily bars last price is ok or we need to get price from latest minute bar...
+            OrderFillStatus orderFillStatus = initiateCallOrPutSelling(nextStrikePrice, ticker, dailyBars.get(dailyBars.size() - 1).getClose(), 'C');
             // TO DO Store daily completed transactions in TradeWorkerStatus
             // place a sell order and wait for completion of Order
             // Need to do more work procssing status similar to saveBuyStatus
             if(orderFillStatus.getStatus() != ORDER_STATUS_OPEN) // To DO
-                repeatUntilSold();
+                repeatUntilSold(orderFillStatus.getOrderId(), nextStrikePrice, ticker, dailyBars.get(dailyBars.size() - 1).getClose() );
 
             currentStatus = CurrentStatus.NO_STATUS;
         }
     }
 
-    private OrderFillStatus  repeatUntilSold() throws Exception {
+    private OrderFillStatus  repeatUntilSold(String orderId, NextStrikePrice nextStrikePrice, String ticker, double price) throws Exception {
         // TO DO
-        return OrderFillStatus.ORDER_FILL_STATUS_FAILED;
+        return optionOrderProcessor.replaceCallSellOrder(orderId, nextStrikePrice, ticker, price);
     }
 
     private void determinePutsSellPoint(List<Bar> minuteBars, List<Bar> dailyBars) {

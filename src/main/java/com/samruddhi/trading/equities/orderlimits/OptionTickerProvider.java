@@ -41,14 +41,18 @@ public class OptionTickerProvider {
 
     public static NextStrikePrice getNextOptionTicker(String ticker, double price, char callOrPut) {
         String nextExpiryDate = OptionExpiryPeriod.hasDailyOptions(ticker) ? getToday() : getNextFriday();
-        String zeroPaddedPrice = NumberFormatHelper.formatOptionStrike(OptionTickerProvider.nextStrikePrice(ticker, price, 0));
+        //String zeroPaddedPrice = NumberFormatHelper.formatOptionStrike(OptionTickerProvider.nextStrikePrice(ticker, price, 0));
+        double strikePrice =  OptionTickerProvider.nextStrikePrice(ticker, price, 0);
 
-        StringBuilder fulltickerSb = new StringBuilder(zeroPaddedPrice);
+       // "Symbol": "MSFT 211217P332.5",
+        StringBuilder fulltickerSb = new StringBuilder(ticker);
+        fulltickerSb.append(" ");
+        //new StringBuilder(zeroPaddedPrice);
         fulltickerSb.append(nextExpiryDate);
         fulltickerSb.append(callOrPut);
-        fulltickerSb.append(zeroPaddedPrice);
+        fulltickerSb.append(strikePrice);
 
-        StringBuilder tickerWithDateSb = new StringBuilder(zeroPaddedPrice);
+        StringBuilder tickerWithDateSb = new StringBuilder(strikePrice+"");
         tickerWithDateSb.append(nextExpiryDate);
         tickerWithDateSb.append(callOrPut);
 

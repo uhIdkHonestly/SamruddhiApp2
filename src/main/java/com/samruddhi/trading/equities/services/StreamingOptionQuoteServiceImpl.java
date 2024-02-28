@@ -30,14 +30,14 @@ public class StreamingOptionQuoteServiceImpl implements StreamingOptionQuoteServ
     }
 
     @Override
-    public OptionData getOptionQuote(String ticker, String optionStrike) {
+    public OptionData getOptionQuote(String optionTicker ) {
 
         OptionData optionData = null;
         try {
-            String encodedName = URLEncoder.encode("legs[0].Symbol", StandardCharsets.UTF_8.toString());
-            String encodedValue = URLEncoder.encode(ticker + " " + optionStrike, StandardCharsets.UTF_8.toString());
+            //String encodedName = URLEncoder.encode("legs[0].Symbol", StandardCharsets.UTF_8.toString());
+            String encodedValue = URLEncoder.encode(optionTicker, StandardCharsets.UTF_8.toString());
 
-            String queryString = encodedName + "=" + encodedValue;
+            String queryString = encodedValue;
             String url = OPTION_QUOTES_URL + queryString;
 
             HttpRequest request = HttpRequest.newBuilder()
@@ -82,6 +82,6 @@ public class StreamingOptionQuoteServiceImpl implements StreamingOptionQuoteServ
         // Replace {underlying} with the actual underlying symbol you're interested in
 
         StreamingOptionQuoteServiceImpl streamingOptionQuoteService = new StreamingOptionQuoteServiceImpl();
-        streamingOptionQuoteService.getOptionQuote("MSFT", "500");
+        streamingOptionQuoteService.getOptionQuote("MSFT 211229C250" );
     }
 }
