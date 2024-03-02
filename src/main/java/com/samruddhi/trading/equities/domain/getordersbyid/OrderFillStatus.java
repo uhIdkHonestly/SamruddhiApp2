@@ -2,6 +2,8 @@ package com.samruddhi.trading.equities.domain.getordersbyid;
 
 import com.samruddhi.trading.equities.logic.OptionOrderFillStatus;
 
+import java.time.LocalTime;
+
 public class OrderFillStatus {
 
     public static final OrderFillStatus ORDER_FILL_STATUS_FAILED = new OrderFillStatus("0", "FAILED", 0.0, 0, "");
@@ -12,14 +14,17 @@ public class OrderFillStatus {
     OptionOrderFillStatus status;
     double fillPrice;
     int fillQuantity;
-    String ticker;
+    /** This wil be actual option ticker */
+    String optionTicker;
+
+    LocalTime executionTime = LocalTime.now();
 
     public OrderFillStatus(String orderId, String status, double fillPrice, int fillQuantity, String ticker) {
         this.orderId = orderId;
         this.status = OptionOrderFillStatus.fromString(status);
         this.fillPrice = fillPrice;
         this.fillQuantity = fillQuantity;
-        this.ticker = ticker;
+        this.optionTicker = ticker;
     }
 
     public OrderFillStatus(String orderId, OptionOrderFillStatus status, double fillPrice, int fillQuantity, String ticker) {
@@ -27,7 +32,7 @@ public class OrderFillStatus {
         this.status = status;
         this.fillPrice = fillPrice;
         this.fillQuantity = fillQuantity;
-        this.ticker = ticker;
+        this.optionTicker = ticker;
     }
 
     public OptionOrderFillStatus getStatus() {
@@ -55,11 +60,11 @@ public class OrderFillStatus {
     }
 
     public String getTicker() {
-        return ticker;
+        return optionTicker;
     }
 
     public void setTicker(String ticker) {
-        this.ticker = ticker;
+        this.optionTicker = ticker;
     }
 
     public String getOrderId() {
@@ -68,5 +73,14 @@ public class OrderFillStatus {
 
     public void setOrderId(String orderId) {
         this.orderId = orderId;
+    }
+
+
+    public LocalTime getExecutionTime() {
+        return executionTime;
+    }
+
+    public void setExecutionTime(LocalTime executionTime) {
+        this.executionTime = executionTime;
     }
 }

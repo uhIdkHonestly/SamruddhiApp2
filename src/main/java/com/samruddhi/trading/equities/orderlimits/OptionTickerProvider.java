@@ -47,11 +47,10 @@ public class OptionTickerProvider {
        // "Symbol": "MSFT 211217P332.5",
         StringBuilder fulltickerSb = new StringBuilder(ticker);
         fulltickerSb.append(" ");
-        //new StringBuilder(zeroPaddedPrice);
         fulltickerSb.append(nextExpiryDate);
         fulltickerSb.append(callOrPut);
         fulltickerSb.append(strikePrice);
-
+        // We may not need this piece
         StringBuilder tickerWithDateSb = new StringBuilder(strikePrice+"");
         tickerWithDateSb.append(nextExpiryDate);
         tickerWithDateSb.append(callOrPut);

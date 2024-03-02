@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 
 import com.samruddhi.trading.equities.config.ConfigManager;
+import com.samruddhi.trading.equities.domain.FinishedTrade;
 import com.samruddhi.trading.equities.domain.NextStrikePrice;
 import com.samruddhi.trading.equities.domain.getordersbyid.OrderFillStatus;
 import com.samruddhi.trading.equities.logic.base.OptionOrderProcessor;
@@ -31,6 +32,7 @@ import static com.samruddhi.trading.equities.logic.OptionOrderFillStatus.*;
 
 public class TradeWorker implements Callable<TradeWorkerStatus> {
 
+    private static int PER_INTERVAL_SLEEP_TIME = 100; // In milli seconds
     // We allow upto 3 exceptions per Ticker in the TradeWorker
     private final int MAX_ALLOWED_EXCEPTION_COUNT = 3;
     private int currentExceptionCount = 0;
@@ -43,6 +45,8 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
 
     private boolean isTerminated = false;
     private MarketDataService marketDataService;
+    /** This ticker is injected to the COnstructor,  TradeWorker can only work with one Stock like AAPL at a time */
+
     private String ticker;
     /**
      * Holds all the Bars since a buy or Call or Put is initiated until Sold
@@ -67,7 +71,7 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
     /**
      * Details of order fill status that came from ORDER
      */
-    private OrderFillStatus currentOrderFillStatus;
+    private OrderFillStatus recentBuyFillStatus;
 
     /**
      * Keeps track of all Finished trades in this worker and also worker status
@@ -82,8 +86,10 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
         this.marketDataService = marketDataService;
         this.barsSincePurchase = new ArrayList<>();
         this.barsInCurrentTrend = new ArrayList<>();
-        this.currentStatus = currentStatus;
-        this.tradeWorkerStatus = tradeWorkerStatus;
+        this.currentStatus = CurrentStatus.NO_STATUS;;
+        this.tradeWorkerStatus = new TradeWorkerStatus("");
+        this.previousEmas = new PreviousEmas(0, 0, 0);
+        this.ticker = ticker;
         this.streamingOptionQuoteService = new StreamingOptionQuoteServiceImpl();
         this.optionOrderProcessor = new OptionOrderProcessorImpl();
     }
@@ -98,7 +104,6 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
         while (!isTerminated) {
             while (!Thread.currentThread().isInterrupted()) {
                 try {
-
                     // get  minute stock data , tick - 2 (just last 2) using the stock ticker
                     // marketDataService.getStockDataBars(1, MarketDataServiceImpl.TIME_UNIT_MINUTE, 2);
                     List<Bar> minuteBars = marketDataService.getStockDataBars(ticker, "Minute", 1, 2);
@@ -108,13 +113,12 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
 
                     switch (currentStatus) {
                         case NO_STATUS, UPTREND, DOWNTREND -> checkAndPlaceOptionBuyOrder(minuteBars, dailyBars);
-                        case CALL_HELD -> determineCallSellPoint(minuteBars, dailyBars);
-                        case PUT_HELD -> determinePutsSellPoint(minuteBars, dailyBars);
+                        case CALL_HELD -> checkAndPlaceCallSellPoint(minuteBars, dailyBars);
+                        case PUT_HELD -> checkAndPlacePutsSellPoint(minuteBars, dailyBars);
                     }
 
-                    // Sleep for 1/2 minute, some import issue in J 21
-                    //TimeUnit.MILLISECONDS.sleep(500);
-                    Thread.sleep(500);
+                    // Sleep for 1/2 minute, some import issue in J 21 with TimeUnit.MILLISECONDS.sleep
+                    Thread.sleep(PER_INTERVAL_SLEEP_TIME);
                 } catch (InterruptedException e) {
                     logger.info("Task interrupted.");
                     Thread.currentThread().interrupt(); // Preserve interrupt status
@@ -153,27 +157,26 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
         if (ema5 > ema50 && ema5 > ema13 && previousEmas != null) {
             // Probable Buy call scenario
             currentStatus = CurrentStatus.UPTREND;
-            // check if first time
-            boolean isBuyCallBasedOnPastMinute = previousEmas.ema5day > previousEmas.ema50day && previousEmas.ema5day > previousEmas.ema13day;
-
+            // check if first time 5 crossing above 13 and 50 DAY EMAs, if it was buyable last minute we don't want to Buy now as we may be bit late
+            boolean isPastMinuteACallBuy = previousEmas.ema5day > previousEmas.ema50day && previousEmas.ema5day > previousEmas.ema13day;
 
             // Initiate an Option buy order if all criteria met
-            if (isBuyCallBasedOnPastMinute && isMacdBullish && isRsiBullish) {
+            if (!isPastMinuteACallBuy && isMacdBullish && isRsiBullish) {
                 orderFillStatus = initiateCallOrPutBuying(ticker, dailyBars.get(dailyBars.size() - 1).getClose(), 'C');
+                saveBuyStatus(orderFillStatus, true);
             }
-            saveBuyStatus(orderFillStatus, true);
         } else if (ema5 < ema50 && ema5 < ema13 && previousEmas != null) {
             // Probable Buy put scenario
             currentStatus = CurrentStatus.DOWNTREND;
-            // check if first time
-            boolean isSellPutBasedOnPastMinute = previousEmas.ema5day < previousEmas.ema50day && previousEmas.ema5day < previousEmas.ema13day;
-            if (isSellPutBasedOnPastMinute && !isMacdBullish && !isRsiBullish) {
+            // check if first time 5 crossing below 13 and 50 DAY EMAs, if it was buyable last minute we don't want to Sell now as we may be bit late
+            boolean isPastPastMinuteAPutBuy = previousEmas.ema5day < previousEmas.ema50day && previousEmas.ema5day < previousEmas.ema13day;
+            if (!isPastPastMinuteAPutBuy && !isMacdBullish && !isRsiBullish) {
                 //initiatePutBuying(ticker, price);
                 orderFillStatus = initiateCallOrPutBuying(ticker, dailyBars.get(dailyBars.size() - 1).getClose(), 'P');
+                saveBuyStatus(orderFillStatus, false);
             }
-            saveBuyStatus(orderFillStatus, false);
         }
-
+        previousEmas = new PreviousEmas(ema5, ema13, ema50);
     }
 
     /**
@@ -186,7 +189,7 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
             else
                 currentStatus = CurrentStatus.PUT_HELD;
 
-            currentOrderFillStatus = orderFillStatus;
+            recentBuyFillStatus = orderFillStatus;
         } else if (orderFillStatus.getStatus() != ORDER_STATUS_OPEN) {
             // TO DO -  optionOrderProcessor.cancelOrder(orderFillStatus.orderId);
             optionOrderProcessor.cancelOrder(orderFillStatus.getOrderId());
@@ -235,11 +238,11 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
 
     /**
      * This when we already hold a call and need to sell it as trend is reversing or we need to trim due to meeting target price
-     *
+     * Calls held will be sold if conditions are met.
      * @param minuteBars
      * @param dailyBars
      */
-    private void determineCallSellPoint(List<Bar> minuteBars, List<Bar> dailyBars) throws Exception{
+    private void checkAndPlaceCallSellPoint(List<Bar> minuteBars, List<Bar> dailyBars) throws Exception{
 
         // TO DO duplicated work fix me
         double ema5 = EMACalculator.calculateEMAs(dailyBars, 5);
@@ -256,7 +259,7 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
         boolean isRsiBullish = rsi > 40; // Fix me
 
         if ((ema5 < ema50 || ema5 < ema13 && !isMacdBullish) ||
-                (TradeWorkerPriceHelper.hasDroppedByGivenPercentage(currentOrderFillStatus, minuteBars.get(minuteBars.size()-1), ConfigManager.getInstance().getAcceptablePriceDropPercent(currentOrderFillStatus.getTicker())))) {
+                (TradeWorkerPriceHelper.hasDroppedByGivenPercentage(recentBuyFillStatus, minuteBars.get(minuteBars.size()-1), ConfigManager.getInstance().getAcceptablePriceDropPercent(recentBuyFillStatus.getTicker())))) {
             // TO DO We need to sell this call Asap
             NextStrikePrice nextStrikePrice = OptionTickerProvider.getNextOptionTicker(ticker, dailyBars.get(dailyBars.size() - 1).getClose(), 'C');
             // CHeck here and other places,  if using Daily bars last price is ok or we need to get price from latest minute bar...
@@ -265,8 +268,10 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
             // place a sell order and wait for completion of Order
             // Need to do more work procssing status similar to saveBuyStatus
             if(orderFillStatus.getStatus() != ORDER_STATUS_OPEN) // To DO
-                repeatUntilSold(orderFillStatus.getOrderId(), nextStrikePrice, ticker, dailyBars.get(dailyBars.size() - 1).getClose() );
+                orderFillStatus = repeatUntilSold(orderFillStatus.getOrderId(), nextStrikePrice, ticker, dailyBars.get(dailyBars.size() - 1).getClose() );
 
+            // Append internal DS that holds finished trades for the Day
+            storeFinishedTrade(orderFillStatus);
             currentStatus = CurrentStatus.NO_STATUS;
         }
     }
@@ -276,7 +281,24 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
         return optionOrderProcessor.replaceCallSellOrder(orderId, nextStrikePrice, ticker, price);
     }
 
-    private void determinePutsSellPoint(List<Bar> minuteBars, List<Bar> dailyBars) {
+    private void checkAndPlacePutsSellPoint(List<Bar> minuteBars, List<Bar> dailyBars) {
 
+    }
+
+    //public FinishedTrade(String ticker, double buyPrice, double sellPrice, LocalTime entry, LocalTime exit, long quantity, double profitOrLoss) {
+    private void storeFinishedTrade(OrderFillStatus sellFillStatus) {
+        FinishedTrade finishedTrade = new FinishedTrade(sellFillStatus.getTicker(), recentBuyFillStatus.getFillPrice(), sellFillStatus.getFillPrice(),
+                recentBuyFillStatus.getExecutionTime(), sellFillStatus.getExecutionTime(), sellFillStatus.getFillQuantity(), calculateProfit(sellFillStatus) ); // calculate profit
+        tradeWorkerStatus.addFinishedTrade(finishedTrade);
+    }
+
+    private double calculateProfit(OrderFillStatus sellFillStatus) {
+        if(recentBuyFillStatus.getFillPrice() <  sellFillStatus.getFillPrice()) {
+            // We made a Profit
+            return sellFillStatus.getFillPrice() - recentBuyFillStatus.getFillPrice() * recentBuyFillStatus.getFillQuantity();
+        } else {
+            // We made a Loss
+            return sellFillStatus.getFillPrice() - recentBuyFillStatus.getFillPrice() * recentBuyFillStatus.getFillQuantity();
+        }
     }
 }

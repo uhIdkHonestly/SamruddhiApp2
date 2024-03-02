@@ -154,9 +154,9 @@ public class OptionOrderProcessorImpl implements OptionOrderProcessor {
             // TO DO - Need to check and throw exception if no legs
             Leg leg = order.getLegs().get(0);
             if (order.getStatus().equals(ORDER_STATUS_FILLED)) {
-                return new OrderFillStatus(orderId, ORDER_STATUS_FILLED, order.getFilledPrice(), leg.getExecQuantity(), leg.getSymbol());
+                return new OrderFillStatus(orderId, ORDER_STATUS_FILLED, order.getFilledPrice(), leg.getExecQuantity(), leg.getSymbol() + " " + leg.getStrikePrice()  + " " + leg.getExpirationDate());
             } else if (order.getStatus().equals(ORDER_STATUS_OPEN)) {
-                return new OrderFillStatus(orderId, ORDER_STATUS_OPEN, order.getFilledPrice(), leg.getExecQuantity(), leg.getSymbol());
+                return new OrderFillStatus(orderId, ORDER_STATUS_OPEN, order.getFilledPrice(), leg.getExecQuantity(), leg.getSymbol() + " " + leg.getStrikePrice()  + " " + leg.getExpirationDate());
             }
         }
         return ORDER_FILL_STATUS_FAILED;
