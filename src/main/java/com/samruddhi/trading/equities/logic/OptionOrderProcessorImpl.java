@@ -182,8 +182,17 @@ public class OptionOrderProcessorImpl implements OptionOrderProcessor {
         orderService.cancelOrder(orderId);
     }
 
+    /** this will replace existing CALL or PUT sell order with a new LIMIT price
+     *
+     * @param orderId
+     * @param nextStrikePrice
+     * @param ticker
+     * @param price
+     * @return
+     * @throws Exception
+     */
     @Override
-    public OrderFillStatus replaceCallSellOrder(String orderId, NextStrikePrice nextStrikePrice, String ticker, double price) throws Exception {
+    public OrderFillStatus replaceCallOrPutSellOrder(String orderId, NextStrikePrice nextStrikePrice, String ticker, double price) throws Exception {
 
         OrderFillStatus orderFillStatus = null;
         while(orderFillStatus.getStatus() == null || orderFillStatus.getStatus() == ORDER_STATUS_OPEN) {

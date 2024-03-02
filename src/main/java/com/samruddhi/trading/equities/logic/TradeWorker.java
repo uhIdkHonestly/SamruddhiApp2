@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-import com.samruddhi.trading.equities.config.ConfigManager;
 import com.samruddhi.trading.equities.domain.FinishedTrade;
 import com.samruddhi.trading.equities.domain.NextStrikePrice;
 import com.samruddhi.trading.equities.domain.getordersbyid.OrderFillStatus;
@@ -45,7 +44,9 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
 
     private boolean isTerminated = false;
     private MarketDataService marketDataService;
-    /** This ticker is injected to the COnstructor,  TradeWorker can only work with one Stock like AAPL at a time */
+    /**
+     * This ticker is injected to the COnstructor,  TradeWorker can only work with one Stock like AAPL at a time
+     */
 
     private String ticker;
     /**
@@ -86,7 +87,8 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
         this.marketDataService = marketDataService;
         this.barsSincePurchase = new ArrayList<>();
         this.barsInCurrentTrend = new ArrayList<>();
-        this.currentStatus = CurrentStatus.NO_STATUS;;
+        this.currentStatus = CurrentStatus.NO_STATUS;
+        ;
         this.tradeWorkerStatus = new TradeWorkerStatus("");
         this.previousEmas = new PreviousEmas(0, 0, 0);
         this.ticker = ticker;
@@ -130,7 +132,7 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
                 }
             }
             // Well if we get repetaed exceptions then we terminate this Thread and Ticker for the day!!!
-            if(currentExceptionCount > MAX_ALLOWED_EXCEPTION_COUNT) {
+            if (currentExceptionCount > MAX_ALLOWED_EXCEPTION_COUNT) {
                 logger.info("Terminating the TradeWorker for {} due to repeated {} errors", ticker, currentExceptionCount);
                 isTerminated = true;
             }
@@ -239,27 +241,16 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
     /**
      * This when we already hold a call and need to sell it as trend is reversing or we need to trim due to meeting target price
      * Calls held will be sold if conditions are met.
+     *
      * @param minuteBars
      * @param dailyBars
      */
-    private void checkAndPlaceCallSellPoint(List<Bar> minuteBars, List<Bar> dailyBars) throws Exception{
+    private void checkAndPlaceCallSellPoint(List<Bar> minuteBars, List<Bar> dailyBars) throws Exception {
 
-        // TO DO duplicated work fix me
-        double ema5 = EMACalculator.calculateEMAs(dailyBars, 5);
-        double ema13 = EMACalculator.calculateEMAs(dailyBars, 13);
-        double ema50 = EMACalculator.calculateEMAs(dailyBars, 50);
+        CallSellPointHelper callSellPointHelper = new CallSellPointHelper(ticker);
+        boolean isCallSellPointReached = callSellPointHelper.determineIfCallSellCriteriaMet(recentBuyFillStatus, minuteBars, dailyBars);
 
-        // calculate and validate MACD
-        List<Bar> bars26Days = dailyBars.subList(24, dailyBars.size());
-        double[] macd = MACDCalculator.computeMACD(bars26Days, 12, 26, 9);
-        boolean isMacdBullish = MACDCalculator.isMACDTrendBullish(macd[0], macd[1]);
-
-        // Validate RSI and VWAP,
-        double rsi = RSICalculator.calculateRSI(dailyBars.subList(36, dailyBars.size()), 14);
-        boolean isRsiBullish = rsi > 40; // Fix me
-
-        if ((ema5 < ema50 || ema5 < ema13 && !isMacdBullish) ||
-                (TradeWorkerPriceHelper.hasDroppedByGivenPercentage(recentBuyFillStatus, minuteBars.get(minuteBars.size()-1), ConfigManager.getInstance().getAcceptablePriceDropPercent(recentBuyFillStatus.getTicker())))) {
+        if (isCallSellPointReached) {
             // TO DO We need to sell this call Asap
             NextStrikePrice nextStrikePrice = OptionTickerProvider.getNextOptionTicker(ticker, dailyBars.get(dailyBars.size() - 1).getClose(), 'C');
             // CHeck here and other places,  if using Daily bars last price is ok or we need to get price from latest minute bar...
@@ -267,8 +258,8 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
             // TO DO Store daily completed transactions in TradeWorkerStatus
             // place a sell order and wait for completion of Order
             // Need to do more work procssing status similar to saveBuyStatus
-            if(orderFillStatus.getStatus() != ORDER_STATUS_OPEN) // To DO
-                orderFillStatus = repeatUntilSold(orderFillStatus.getOrderId(), nextStrikePrice, ticker, dailyBars.get(dailyBars.size() - 1).getClose() );
+            if (orderFillStatus.getStatus() == ORDER_STATUS_OPEN)
+                orderFillStatus = repeatUntilSold(orderFillStatus.getOrderId(), nextStrikePrice, ticker, dailyBars.get(dailyBars.size() - 1).getClose());
 
             // Append internal DS that holds finished trades for the Day
             storeFinishedTrade(orderFillStatus);
@@ -276,24 +267,44 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
         }
     }
 
-    private OrderFillStatus  repeatUntilSold(String orderId, NextStrikePrice nextStrikePrice, String ticker, double price) throws Exception {
-        // TO DO
-        return optionOrderProcessor.replaceCallSellOrder(orderId, nextStrikePrice, ticker, price);
+    /**
+     * Repeat until the current Option ( can be either CALL or PUT) is Sold
+     */
+    private OrderFillStatus repeatUntilSold(String orderId, NextStrikePrice nextStrikePrice, String ticker, double price) throws Exception {
+        return optionOrderProcessor.replaceCallOrPutSellOrder(orderId, nextStrikePrice, ticker, price);
     }
 
-    private void checkAndPlacePutsSellPoint(List<Bar> minuteBars, List<Bar> dailyBars) {
+    private void checkAndPlacePutsSellPoint(List<Bar> minuteBars, List<Bar> dailyBars) throws Exception {
+        CallSellPointHelper callSellPointHelper = new CallSellPointHelper(ticker);
+        boolean isCallSellPointReached = callSellPointHelper.determineIfPutSellCriteriaMet(recentBuyFillStatus, minuteBars, dailyBars);
+        // TO DO Fix the logic here
 
+        if (isCallSellPointReached) {
+            // TO DO We need to sell this call Asap
+            NextStrikePrice nextStrikePrice = OptionTickerProvider.getNextOptionTicker(ticker, dailyBars.get(dailyBars.size() - 1).getClose(), 'P');
+            // CHeck here and other places,  if using Daily bars last price is ok or we need to get price from latest minute bar...
+            OrderFillStatus orderFillStatus = initiateCallOrPutSelling(nextStrikePrice, ticker, dailyBars.get(dailyBars.size() - 1).getClose(), 'P');
+            // TO DO Store daily completed transactions in TradeWorkerStatus
+            // place a sell order and wait for completion of Order
+            // Need to do more work procssing status similar to saveBuyStatus
+            if (orderFillStatus.getStatus() == ORDER_STATUS_OPEN)
+                orderFillStatus = repeatUntilSold(orderFillStatus.getOrderId(), nextStrikePrice, ticker, dailyBars.get(dailyBars.size() - 1).getClose());
+
+            // Append internal DS that holds finished trades for the Day
+            storeFinishedTrade(orderFillStatus);
+            currentStatus = CurrentStatus.NO_STATUS;
+        }
     }
 
     //public FinishedTrade(String ticker, double buyPrice, double sellPrice, LocalTime entry, LocalTime exit, long quantity, double profitOrLoss) {
     private void storeFinishedTrade(OrderFillStatus sellFillStatus) {
         FinishedTrade finishedTrade = new FinishedTrade(sellFillStatus.getTicker(), recentBuyFillStatus.getFillPrice(), sellFillStatus.getFillPrice(),
-                recentBuyFillStatus.getExecutionTime(), sellFillStatus.getExecutionTime(), sellFillStatus.getFillQuantity(), calculateProfit(sellFillStatus) ); // calculate profit
+                recentBuyFillStatus.getExecutionTime(), sellFillStatus.getExecutionTime(), sellFillStatus.getFillQuantity(), calculateProfit(sellFillStatus)); // calculate profit
         tradeWorkerStatus.addFinishedTrade(finishedTrade);
     }
 
     private double calculateProfit(OrderFillStatus sellFillStatus) {
-        if(recentBuyFillStatus.getFillPrice() <  sellFillStatus.getFillPrice()) {
+        if (recentBuyFillStatus.getFillPrice() < sellFillStatus.getFillPrice()) {
             // We made a Profit
             return sellFillStatus.getFillPrice() - recentBuyFillStatus.getFillPrice() * recentBuyFillStatus.getFillQuantity();
         } else {
