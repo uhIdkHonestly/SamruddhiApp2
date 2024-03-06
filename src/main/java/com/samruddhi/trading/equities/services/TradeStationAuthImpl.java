@@ -2,14 +2,22 @@ package com.samruddhi.trading.equities.services;
 
 import com.samruddhi.trading.equities.services.base.Authenticator;
 import common.JsonParser;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.net.http.HttpTimeoutException;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Base64;
 
@@ -17,6 +25,14 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+import org.apache.http.util.EntityUtils;
+
 
 /**
  * curl --request POST \
@@ -39,9 +55,9 @@ import java.util.Optional;
  */
 public class TradeStationAuthImpl implements Authenticator {
     private static final String ACCESS_TOKEN = "access_token";
-    private static final String CLIENT_ID = "your_client_id";
-    private static final String CLIENT_SECRET = "your_client_secret";
-    private static final String TOKEN_ENDPOINT = "https://api.radestation.com/oauth/token";
+    private static final String CLIENT_ID = "";
+    private static final String CLIENT_SECRET = "";
+    private static final String TOKEN_ENDPOINT = "https://signin.tradestation.com/oauth/token";
 
     private static Authenticator instance;
 
@@ -58,7 +74,7 @@ public class TradeStationAuthImpl implements Authenticator {
     @Override
     public Optional<String> getAccessToken() {
         Optional<String> accessTokenMayBe = Optional.empty();
-        try {
+       /* try {
             HttpClient client = HttpClient.newHttpClient();
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(TOKEN_ENDPOINT))
@@ -80,8 +96,45 @@ public class TradeStationAuthImpl implements Authenticator {
         } catch (IOException  | InterruptedException e) {
             e.printStackTrace();
             throw new RuntimeException("Getting access token from TradeStation failed" + e.getMessage());
+        }*/
+
+        try {
+            CloseableHttpClient httpClient = HttpClients.createDefault();
+
+            URIBuilder uriBuilder = new URIBuilder(TOKEN_ENDPOINT);
+            uriBuilder.addParameter("grant_type", "authorization_code");
+
+            URI uri = uriBuilder.build();
+
+            HttpPost postRequest = new HttpPost(uri);
+            postRequest.setHeader("Content-Type", "application/x-www-form-urlencoded");
+
+            String credentials = CLIENT_ID + ":" + CLIENT_SECRET;
+            String encodedCredentials = Base64.getEncoder().encodeToString(credentials.getBytes(StandardCharsets.UTF_8));
+            postRequest.setHeader("Authorization", "Basic " + encodedCredentials);
+
+            StringEntity entity = new StringEntity("client_id=" + CLIENT_ID
+                    //+ "&grant_type=authorization_code"
+                    + "&redirect_uri=httpd://localhost"
+                    + "&grant_type=authorization_code"
+                    + "&client_secret=" + CLIENT_SECRET, StandardCharsets.UTF_8);
+            postRequest.setEntity(entity);
+
+            CloseableHttpResponse response = httpClient.execute(postRequest);
+
+            String responseString = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
+            System.out.println("responseString" + responseString);
+            if (response.getStatusLine().getStatusCode() == 200) {
+
+                accessTokenMayBe = JsonParser.getJsonTagValue(responseString, ACCESS_TOKEN);
+                return accessTokenMayBe/* access token extracted from response */;
+            } else {
+                throw new IOException("Failed to obtain access token: " + responseString);
+            }
+        } catch (IOException | URISyntaxException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Getting access token from TradeStation failed" + e.getMessage());
         }
-        return accessTokenMayBe;
     }
 
     private static String basicAuthHeader() {
@@ -95,5 +148,10 @@ public class TradeStationAuthImpl implements Authenticator {
      */
     public String getApiKey() {
         return "acklsdkadkkadadladda";
+    }
+
+    public static void main(String[] args) {
+        TradeStationAuthImpl authImpl = new TradeStationAuthImpl();
+        authImpl.getAccessToken();
     }
 }
