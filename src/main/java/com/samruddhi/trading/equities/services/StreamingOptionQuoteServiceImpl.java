@@ -2,11 +2,17 @@ package com.samruddhi.trading.equities.services;
 
 
 import com.samruddhi.trading.equities.domain.OptionData;
-import com.samruddhi.trading.equities.services.base.Authenticator;
+import com.samruddhi.trading.equities.logic.FileWriter;
+import com.samruddhi.trading.equities.services.base.GetOrdersByOrderIdService;
 import com.samruddhi.trading.equities.services.base.StreamingOptionQuoteService;
 import common.JsonParser;
+import okhttp3.HttpUrl;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
@@ -19,46 +25,46 @@ import java.io.IOException;
 
 public class StreamingOptionQuoteServiceImpl implements StreamingOptionQuoteService {
 
+    private static final Logger logger = LoggerFactory.getLogger(StreamingOptionQuoteServiceImpl.class);
     private static final HttpClient httpClient = HttpClient.newHttpClient();
-    private static final String OPTION_QUOTES_URL = "https://api.tradestation.com/v3/marketdata/stream/options/quotes?";
+    private static final String OPTION_QUOTES_URL = "https://api.tradestation.com/v3/marketdata/stream/options/quotes";
 
-    private final String apiKey;
+    private final String token;
 
     public StreamingOptionQuoteServiceImpl() {
 
-        apiKey = TradeStationAuthImpl.getInstance().getAccessToken().get();
+        token = TradeStationAuthImpl.getInstance().getAccessToken().get();
     }
 
     @Override
-    public OptionData getOptionQuote(String optionTicker ) {
-
+    public OptionData getOptionQuote(String optionTicker) throws Exception {
+        OkHttpClient client = new OkHttpClient();
         OptionData optionData = null;
         try {
-            //String encodedName = URLEncoder.encode("legs[0].Symbol", StandardCharsets.UTF_8.toString());
-            String encodedValue = URLEncoder.encode(optionTicker, StandardCharsets.UTF_8.toString());
-
-            String queryString = encodedValue;
-            String url = OPTION_QUOTES_URL + queryString;
-
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(url))
-                    .header("Accept", "application/vnd.tradestation.streams.v2+json")
-                    .header("Authorization", "Bearer " + apiKey)
+            HttpUrl url = HttpUrl.parse(OPTION_QUOTES_URL).newBuilder()
+                    .addQueryParameter("legs[0].Symbol", optionTicker)
                     .build();
 
-            // Use a BodyHandler to process the streaming response
-            HttpResponse.BodyHandler<InputStream> responseBodyHandler = HttpResponse.BodyHandlers.ofInputStream();
+            // Constructing the request
+            Request request = new Request.Builder()
+                    .url(url)
+                    .addHeader("Accept", "application/json") // Example of a common header
+                    .header("Authorization", "Bearer " + token) // Replace 'your_token_here' with your actual token
+                    .build();
 
-
-            HttpResponse<InputStream> response = httpClient.send(request, responseBodyHandler);
-            // Assuming the response body is an InputStream
-            try (InputStream stream = response.body()) {
-                // Process the stream continuously
-                String optionResponsejson = buildResponseJson(stream);
+            try (Response response = client.newCall(request).execute()) {
+                // Output the response body
+                String optionResponsejson =  buildResponseJson(response.body().byteStream());
+                FileWriter.writeToFile(optionResponsejson);
                 optionData = JsonParser.getOptionQuote(optionResponsejson);
+            } catch (Exception e) {
+                e.printStackTrace();
+                throw e;
             }
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
+
+        } catch (Exception  e1) {
+            e1.printStackTrace();
+            throw e1;
         }
 
         return optionData;
@@ -77,11 +83,11 @@ public class StreamingOptionQuoteServiceImpl implements StreamingOptionQuoteServ
         return responseJson.toString();
     }
 
-    public static void main(String[] args) {
-        String url = "https://api.tradestation.com/v3/marketdata/stream/options/quotes?legs%5B0%5D.Symbol=";
+    public static void main(String[] args) throws Exception {
         // Replace {underlying} with the actual underlying symbol you're interested in
 
         StreamingOptionQuoteServiceImpl streamingOptionQuoteService = new StreamingOptionQuoteServiceImpl();
-        streamingOptionQuoteService.getOptionQuote("MSFT 211229C250" );
+        OptionData optionData = streamingOptionQuoteService.getOptionQuote("AAPL 240308C167.5" );
+        logger.info(optionData.toString());
     }
 }

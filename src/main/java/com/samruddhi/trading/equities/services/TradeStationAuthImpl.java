@@ -38,6 +38,7 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 
 /**
+ * ==  Request ===
  * curl --request POST \
  * --url 'https://signin.tradestation.com/oauth/token' \
  * --header 'content-type: application/x-www-form-urlencoded' \
@@ -45,8 +46,9 @@ import java.net.InetSocketAddress;
  * --data 'client_id=YOUR_CLIENT_ID' \
  * --data 'client_secret=YOUR_CLIENT_SECRET' \
  * --data 'code=YOUR_AUTHORIZATION_CODE' \
- * --data 'redirect_uri=https://exampleclientapp/callback'
+ * --data 'redirect_uri=http://localhost:80'
  * <p>
+ * ==  Response ===
  * {
  * "access_token": "eGlhc2xv...MHJMaA",
  * "refresh_token": "eGlhc2xv...wGVFPQ",
@@ -130,9 +132,12 @@ public class TradeStationAuthImpl implements Authenticator {
 
     @Override
     public Optional<String> getAccessToken() {
+        // TO DO Enable me... after tests
+        //if (cachedAccessToken.containsKey(ACCESS_TOKEN))
+        //    return Optional.of(cachedAccessToken.get(ACCESS_TOKEN));
 
-        if (cachedAccessToken.containsKey(ACCESS_TOKEN))
-            return Optional.of(cachedAccessToken.get(ACCESS_TOKEN));
+        if (ConfigManager.getInstance().getProperty("ACCESS_TOKEN").length() > 0)
+            return Optional.of(ConfigManager.getInstance().getProperty("ACCESS_TOKEN"));
 
         Optional<String> accessTokenMayBe = Optional.empty();
 
@@ -190,19 +195,6 @@ public class TradeStationAuthImpl implements Authenticator {
         return "Basic " + encodedCredentials;
     }
 
-    public static void main(String[] args) throws Exception {
-        startServer();
-
-        //TradeStationAuthImpl authImpl = new TradeStationAuthImpl();
-        //authImpl.getAccessToken();
-
-
-       /* Optional<String> accessToken = TradeStationAuthImpl.getInstance().getAccessToken();
-        System.out.println(accessToken);
-        String refreshToken = TradeStationAuthImpl.getInstance().getRefreshToken();
-        System.out.println(refreshToken);*/
-    }
-
     private static void startServer() throws Exception {
 
         int port = 80; // You can change this port if needed
@@ -217,5 +209,17 @@ public class TradeStationAuthImpl implements Authenticator {
         });
         server.start();
         System.out.println("Server started at http://localhost:" + port);
+    }
+
+    public static void main(String[] args) throws Exception {
+        startServer();
+
+        //TradeStationAuthImpl authImpl = new TradeStationAuthImpl();
+        //authImpl.getAccessToken();
+
+        Optional<String> accessToken = TradeStationAuthImpl.getInstance().getAccessToken();
+        System.out.println(accessToken);
+        String refreshToken = TradeStationAuthImpl.getInstance().getRefreshToken();
+        System.out.println(refreshToken);
     }
 }

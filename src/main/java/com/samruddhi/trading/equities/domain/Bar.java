@@ -5,6 +5,33 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.Date;
 
+
+/**
+ * {
+ *    "Bars":[
+ *       {
+ *          "High":"173.65",
+ *          "Low":"173.57",
+ *          "Open":"173.65",
+ *          "Close":"173.6",
+ *          "TimeStamp":"2024-03-06T20:59:00Z",
+ *          "TotalVolume":"159544",
+ *          "DownTicks":538,
+ *          "DownVolume":86985,
+ *          "OpenInterest":"0",
+ *          "IsRealtime":false,
+ *          "IsEndOfHistory":false,
+ *          "TotalTicks":1016,
+ *          "UnchangedTicks":0,
+ *          "UnchangedVolume":0,
+ *          "UpTicks":478,
+ *          "UpVolume":72559,
+ *          "Epoch":1709758740000,
+ *          "BarStatus":"Closed"
+ *       }
+ *    ]
+ * }
+ */
 public class Bar{
     @JsonProperty("High")
     public String high;
@@ -42,6 +69,9 @@ public class Bar{
     public Object epoch;
     @JsonProperty("BarStatus")
     public String barStatus;
+
+    public Bar() {
+    }
 
     public Bar(double price) {
       this.closeNumeric = closeNumeric;

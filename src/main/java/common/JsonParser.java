@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.samruddhi.trading.equities.domain.Bar;
+import com.samruddhi.trading.equities.domain.BarRoot;
 import com.samruddhi.trading.equities.domain.OptionData;
 import com.samruddhi.trading.equities.domain.getorders.GetOrdersResponse;
 import com.samruddhi.trading.equities.domain.getordersbyid.GetOrdersByOrderIdResponse;
@@ -36,14 +37,14 @@ public class JsonParser {
     }
 
     public static List<Bar> getListOfBars(String jsonString) {
+
+
         List<Bar> bars = Collections.emptyList();
+        ObjectMapper objectMapper = new ObjectMapper();
         try {
             // Create an ObjectMapper
-            ObjectMapper objectMapper = new ObjectMapper();
-
-            // Read the JSON array and map it to a List of Bar objects
-            bars = objectMapper.readValue(jsonString, new TypeReference<List<Bar>>() {
-            });
+            BarRoot barsWrapper = objectMapper.readValue(jsonString, BarRoot.class);
+            bars = barsWrapper.getBars();
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }

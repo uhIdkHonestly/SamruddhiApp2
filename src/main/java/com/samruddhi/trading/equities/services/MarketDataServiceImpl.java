@@ -1,6 +1,7 @@
 package com.samruddhi.trading.equities.services;
 
 import com.samruddhi.trading.equities.domain.Bar;
+import com.samruddhi.trading.equities.logic.FileWriter;
 import com.samruddhi.trading.equities.services.base.MarketDataService;
 import common.JsonParser;
 import org.slf4j.Logger;
@@ -37,7 +38,7 @@ public class MarketDataServiceImpl implements MarketDataService {
         // Replace with your actual API token
         String token = TradeStationAuthImpl.getInstance().getAccessToken().get();
 
-        String apiUrl = String.format(MARKET_DATA_URL, ticker, 1, durationType, 2);
+        String apiUrl = String.format(MARKET_DATA_URL, ticker, 1, durationType, barsBack);
         try {
 
             HttpResponse<String> response = createHttpRequest(apiUrl, token);
@@ -47,6 +48,10 @@ public class MarketDataServiceImpl implements MarketDataService {
                 String responseBody = response.body();
                 logger.info("Response JSON:");
                 logger.info(responseBody);
+
+
+                // TO DO Remove me after test
+                FileWriter.writeToFile(responseBody);
                 return JsonParser.getListOfBars(responseBody);
             } else {
                 logger.error("Error: HTTP status code " + response.statusCode());
@@ -83,7 +88,9 @@ public class MarketDataServiceImpl implements MarketDataService {
             for (int i = 0; i < 15; i++) {
                 System.out.println("====================================================================");
 
-                List<Bar> bars = marketDataService.getStockDataBars("AMZN", "Minute", 1, 50);
+                //List<Bar> bars = marketDataService.getStockDataBars("AMZN", "Minute", 1, 50);
+
+                List<Bar> bars = marketDataService.getStockDataBars("AMZN", "Minute", 1, 2);
                 System.out.println(bars);
 
                 Thread.sleep(60 * 1000);
