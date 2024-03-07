@@ -1,7 +1,9 @@
 package com.samruddhi.trading.equities.services;
 
+import com.samruddhi.trading.equities.config.SecurityConfigManager;
 import com.samruddhi.trading.equities.services.base.Authenticator;
 import common.JsonParser;
+import okhttp3.*;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
@@ -19,20 +21,20 @@ import java.net.http.HttpResponse.BodyHandlers;
 import java.net.http.HttpTimeoutException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.Base64;
+import java.util.*;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
 
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
 import org.apache.http.util.EntityUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpServer;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.InetSocketAddress;
 
 /**
  * curl --request POST \
@@ -54,14 +56,22 @@ import org.apache.http.util.EntityUtils;
  * }
  */
 public class TradeStationAuthImpl implements Authenticator {
+    private static final Logger logger = LoggerFactory.getLogger(TradeStationAuthImpl.class);
+    private static final String CLIENT_ID_FROM_STEP1 = "FakGIXa4s9Rr89aC";
     private static final String ACCESS_TOKEN = "access_token";
-    private static final String CLIENT_ID = "";
-    private static final String CLIENT_SECRET = "";
+    private final String CLIENT_ID;
+    private final String CLIENT_SECRET;
     private static final String TOKEN_ENDPOINT = "https://signin.tradestation.com/oauth/token";
 
+    private static final String AUTHORIZATION_CODE_ENDPOINT = "https://signin.tradestation.com/authorize";
+
+
+    private static final HashMap<String, String> cachedAccessToken = new HashMap<>();
     private static Authenticator instance;
 
     private TradeStationAuthImpl() {
+        CLIENT_ID = SecurityConfigManager.getInstance().getProperty("CLIENT_ID");
+        CLIENT_SECRET = SecurityConfigManager.getInstance().getProperty("SECRET");
     }
 
     public static synchronized Authenticator getInstance() {
@@ -71,32 +81,58 @@ public class TradeStationAuthImpl implements Authenticator {
         return instance;
     }
 
+    /**
+     * This does not work, needs a browesr
+     */
+    public String authorize() throws Exception {
+
+        //The below works Use in Browser, needs a working localhost:80 http server that recieves redirect
+        // https://signin.tradestation.com/authorize?response_type=code&client_id=COKKzfMyHCbSncPo5LOXtPKEzo2z7VtC&redirect_uri=http://localhost:80&audience=https://api.tradestation.com&state=STATE&scope=openid%20offline_access%20profile%20MarketData%20ReadAccount%20Trade%20Matrix%20OptionSpreads
+
+       /* // Programatic accss to get CODE will not work as TS resttrcts it and needs a browser
+        // Initialize OkHttpClient
+        OkHttpClient client = new OkHttpClient.Builder().build();
+
+        // Build the authorization request URL
+        String authorizationUrl = "https://signin.tradestation.com/authorize"
+                //+ "?client_id=" + CLIENT_ID_API_KEY
+                + "&redirect_uri=" + "http://localhost"
+                + "&response_type=code"
+                + "&audience=https://api.tradestation.com"
+                + "&scope=" + "openid profile offline_access MarketData ReadAccount Trade OptionSpreads";
+
+         //The below works Use in Browser, needs a working localhost:80 http server that recieves redirect
+        // https://signin.tradestation.com/authorize?response_type=code&client_id=COKKzfMyHCbSncPo5LOXtPKEzo2z7VtC&redirect_uri=http://localhost:80&audience=https://api.tradestation.com&state=STATE&scope=openid%20offline_access%20profile%20MarketData%20ReadAccount%20Trade%20Matrix%20OptionSpreads
+
+        // Create a request object
+        Request request = new Request.Builder().url(authorizationUrl).build();
+        String responseString = "";
+        // Send the authorization request and handle the response
+        try (Response response = client.newCall(request).execute()) {
+            if (!response.isSuccessful()) {
+                // Handle unsuccessful response (e.g., log error)
+                throw new Exception();
+            }
+            ResponseBody responseBody = response.body();
+            responseString = responseBody.string();
+            logger.info(responseString);
+            System.out.println(responseString);
+        } catch (IOException e) {
+            // Handle potential IO exceptions (e.g., log error)
+            throw e;
+        }
+        return responseString;*/
+
+        return null;
+    }
+
     @Override
     public Optional<String> getAccessToken() {
+
+        if (cachedAccessToken.containsKey(ACCESS_TOKEN))
+            return Optional.of(cachedAccessToken.get(ACCESS_TOKEN));
+
         Optional<String> accessTokenMayBe = Optional.empty();
-       /* try {
-            HttpClient client = HttpClient.newHttpClient();
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(TOKEN_ENDPOINT))
-                    .header("Authorization", basicAuthHeader())
-                    .POST(HttpRequest.BodyPublishers.ofString("grant_type=client_credentials"))
-                    .timeout(Duration.ofSeconds(10)) // Set a timeout for the request
-                    .build();
-
-
-            HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
-
-            // Read and output the response
-            String jsonResponse = response.body();
-            System.out.println("Response: " + jsonResponse);
-
-            // TODO: Extract the access token from the response and use it to make authenticated requests to the API
-            accessTokenMayBe = JsonParser.getJsonTagValue(jsonResponse, ACCESS_TOKEN);
-
-        } catch (IOException  | InterruptedException e) {
-            e.printStackTrace();
-            throw new RuntimeException("Getting access token from TradeStation failed" + e.getMessage());
-        }*/
 
         try {
             CloseableHttpClient httpClient = HttpClients.createDefault();
@@ -114,8 +150,8 @@ public class TradeStationAuthImpl implements Authenticator {
             postRequest.setHeader("Authorization", "Basic " + encodedCredentials);
 
             StringEntity entity = new StringEntity("client_id=" + CLIENT_ID
-                    //+ "&grant_type=authorization_code"
-                    + "&redirect_uri=httpd://localhost"
+                    + "&redirect_uri=http://localhost:80"
+                    + "&code=" + CLIENT_ID_FROM_STEP1
                     + "&grant_type=authorization_code"
                     + "&client_secret=" + CLIENT_SECRET, StandardCharsets.UTF_8);
             postRequest.setEntity(entity);
@@ -123,21 +159,24 @@ public class TradeStationAuthImpl implements Authenticator {
             CloseableHttpResponse response = httpClient.execute(postRequest);
 
             String responseString = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
-            System.out.println("responseString" + responseString);
+            //System.out.println("responseString" + responseString);
             if (response.getStatusLine().getStatusCode() == 200) {
 
                 accessTokenMayBe = JsonParser.getJsonTagValue(responseString, ACCESS_TOKEN);
+                System.out.println("Access Token: " + accessTokenMayBe);
+                cachedAccessToken.put(ACCESS_TOKEN, accessTokenMayBe.get());
                 return accessTokenMayBe/* access token extracted from response */;
             } else {
                 throw new IOException("Failed to obtain access token: " + responseString);
             }
+
         } catch (IOException | URISyntaxException e) {
             e.printStackTrace();
             throw new RuntimeException("Getting access token from TradeStation failed" + e.getMessage());
         }
     }
 
-    private static String basicAuthHeader() {
+    private String basicAuthHeader() {
         String encodedCredentials = Base64.getEncoder().encodeToString((CLIENT_ID + ":" + CLIENT_SECRET).getBytes());
         return "Basic " + encodedCredentials;
     }
@@ -150,8 +189,29 @@ public class TradeStationAuthImpl implements Authenticator {
         return "acklsdkadkkadadladda";
     }
 
-    public static void main(String[] args) {
-        TradeStationAuthImpl authImpl = new TradeStationAuthImpl();
-        authImpl.getAccessToken();
+    public static void main(String[] args) throws Exception {
+        startServer();
+
+        //TradeStationAuthImpl authImpl = new TradeStationAuthImpl();
+        //authImpl.getAccessToken();
+        //authImpl.authorize();
+        Optional<String> accessToken = TradeStationAuthImpl.getInstance().getAccessToken();
+        System.out.println(accessToken);
+    }
+
+    private static void startServer() throws Exception {
+
+        int port = 80; // You can change this port if needed
+        HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
+        server.createContext("/", exchange -> {
+            String response = "<h1>Hello, world!</h1>";
+            exchange.getResponseHeaders().set("Content-Type", "text/html");
+            exchange.sendResponseHeaders(200, response.length());
+            OutputStream os = exchange.getResponseBody();
+            os.write(response.getBytes());
+            os.close();
+        });
+        server.start();
+        System.out.println("Server started at http://localhost:" + port);
     }
 }

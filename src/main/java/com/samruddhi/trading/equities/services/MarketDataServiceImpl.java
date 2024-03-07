@@ -24,7 +24,8 @@ public class MarketDataServiceImpl implements MarketDataService {
 
     private final String MARKET_DATA_URL = "https://api.tradestation.com/v3/marketdata/barcharts/%s?interval=%s&unit=%s&barsback=%s&sessiontemplate=Default";
 
-    /** For daily and minute chart please pass for  min -
+    /**
+     * For daily and minute chart please pass for  min -
      * 1, TIME_UNIT_MINUTE, 2
      * 1, TIME_UNIT_DAILY, 5, 13, 50
      *
@@ -77,5 +78,21 @@ public class MarketDataServiceImpl implements MarketDataService {
 
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
         return response;
+    }
+
+    public static void main(String[] args) {
+        try {
+
+            MarketDataServiceImpl marketDataService = new MarketDataServiceImpl();
+            for(int i=0; i < 4; i++) {
+                System.out.println("====================================================================");
+
+                List<Bar> bars = marketDataService.getStockDataBars("AMZN", "Daily", 1, 50);
+                System.out.println(bars);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 }
