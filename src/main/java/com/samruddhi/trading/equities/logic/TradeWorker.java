@@ -107,16 +107,16 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
             while (!Thread.currentThread().isInterrupted()) {
                 try {
                     // get  minute stock data , tick - 2 (just last 2) using the stock ticker
-                    // marketDataService.getStockDataBars(1, MarketDataServiceImpl.TIME_UNIT_MINUTE, 2);
+
                     List<Bar> minuteBars = marketDataService.getStockDataBars(ticker, "Minute", 1, 2);
 
                     // get  daily stock data for past 50 days
-                    List<Bar> dailyBars = marketDataService.getStockDataBars(ticker, "Daily", 1, 50);
+                    List<Bar> pastMinuteBars = marketDataService.getStockDataBars(ticker, "Minute", 1, 50);
 
                     switch (currentStatus) {
-                        case NO_STATUS, UPTREND, DOWNTREND -> checkAndPlaceOptionBuyOrder(minuteBars, dailyBars);
-                        case CALL_HELD -> checkAndPlaceCallSellPoint(minuteBars, dailyBars);
-                        case PUT_HELD -> checkAndPlacePutsSellPoint(minuteBars, dailyBars);
+                        case NO_STATUS, UPTREND, DOWNTREND -> checkAndPlaceOptionBuyOrder(minuteBars, pastMinuteBars);
+                        case CALL_HELD -> checkAndPlaceCallSellPoint(minuteBars, pastMinuteBars);
+                        case PUT_HELD -> checkAndPlacePutsSellPoint(minuteBars, pastMinuteBars);
                     }
 
                     // Sleep for 1/2 minute, some import issue in J 21 with TimeUnit.MILLISECONDS.sleep
@@ -243,23 +243,23 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
      * Calls held will be sold if conditions are met.
      *
      * @param minuteBars
-     * @param dailyBars
+     * @param pastMinuteBars
      */
-    private void checkAndPlaceCallSellPoint(List<Bar> minuteBars, List<Bar> dailyBars) throws Exception {
+    private void checkAndPlaceCallSellPoint(List<Bar> minuteBars, List<Bar> pastMinuteBars) throws Exception {
 
         CallSellPointHelper callSellPointHelper = new CallSellPointHelper(ticker);
-        boolean isCallSellPointReached = callSellPointHelper.determineIfCallSellCriteriaMet(recentBuyFillStatus, minuteBars, dailyBars);
+        boolean isCallSellPointReached = callSellPointHelper.determineIfCallSellCriteriaMet(recentBuyFillStatus, minuteBars, pastMinuteBars);
 
         if (isCallSellPointReached) {
             // TO DO We need to sell this call Asap
-            NextStrikePrice nextStrikePrice = OptionTickerProvider.getNextOptionTicker(ticker, dailyBars.get(dailyBars.size() - 1).getClose(), 'C');
+            NextStrikePrice nextStrikePrice = OptionTickerProvider.getNextOptionTicker(ticker, pastMinuteBars.get(pastMinuteBars.size() - 1).getClose(), 'C');
             // CHeck here and other places,  if using Daily bars last price is ok or we need to get price from latest minute bar...
-            OrderFillStatus orderFillStatus = initiateCallOrPutSelling(nextStrikePrice, ticker, dailyBars.get(dailyBars.size() - 1).getClose(), 'C');
+            OrderFillStatus orderFillStatus = initiateCallOrPutSelling(nextStrikePrice, ticker, pastMinuteBars.get(pastMinuteBars.size() - 1).getClose(), 'C');
             // TO DO Store daily completed transactions in TradeWorkerStatus
             // place a sell order and wait for completion of Order
             // Need to do more work procssing status similar to saveBuyStatus
             if (orderFillStatus.getStatus() == ORDER_STATUS_OPEN)
-                orderFillStatus = repeatUntilSold(orderFillStatus.getOrderId(), nextStrikePrice, ticker, dailyBars.get(dailyBars.size() - 1).getClose());
+                orderFillStatus = repeatUntilSold(orderFillStatus.getOrderId(), nextStrikePrice, ticker, pastMinuteBars.get(pastMinuteBars.size() - 1).getClose());
 
             // Append internal DS that holds finished trades for the Day
             storeFinishedTrade(orderFillStatus);

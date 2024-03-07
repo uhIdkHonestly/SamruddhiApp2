@@ -53,4 +53,11 @@ public class SecurityConfigManager {
         return null;
 
     }
+
+    public static void main(String[] args) {
+        String clientId = SecurityConfigManager.getInstance().getProperty("CLIENT_ID");
+        String secret = SecurityConfigManager.getInstance().getProperty("SECRET");
+        System.out.println("ClientId:" + clientId);
+        System.out.println("secret:" + secret);
+    }
 }

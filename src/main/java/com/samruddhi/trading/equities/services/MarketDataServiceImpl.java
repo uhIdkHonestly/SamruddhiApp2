@@ -16,11 +16,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class MarketDataServiceImpl implements MarketDataService {
-
     private static final Logger logger = LoggerFactory.getLogger(MarketDataServiceImpl.class);
-
-    public String TIME_UNIT_MINUTE = "Minute";
-    public String TIME_UNIT_DAILY = "Daily";
 
     private final String MARKET_DATA_URL = "https://api.tradestation.com/v3/marketdata/barcharts/%s?interval=%s&unit=%s&barsback=%s&sessiontemplate=Default";
 
@@ -41,7 +37,7 @@ public class MarketDataServiceImpl implements MarketDataService {
         // Replace with your actual API token
         String token = TradeStationAuthImpl.getInstance().getAccessToken().get();
 
-        String apiUrl = String.format(MARKET_DATA_URL, ticker, 1, TIME_UNIT_DAILY, 2);
+        String apiUrl = String.format(MARKET_DATA_URL, ticker, 1, durationType, 2);
         try {
 
             HttpResponse<String> response = createHttpRequest(apiUrl, token);
@@ -84,11 +80,13 @@ public class MarketDataServiceImpl implements MarketDataService {
         try {
 
             MarketDataServiceImpl marketDataService = new MarketDataServiceImpl();
-            for(int i=0; i < 4; i++) {
+            for (int i = 0; i < 15; i++) {
                 System.out.println("====================================================================");
 
-                List<Bar> bars = marketDataService.getStockDataBars("AMZN", "Daily", 1, 50);
+                List<Bar> bars = marketDataService.getStockDataBars("AMZN", "Minute", 1, 50);
                 System.out.println(bars);
+
+                Thread.sleep(60 * 1000);
             }
         } catch (Exception e) {
             e.printStackTrace();

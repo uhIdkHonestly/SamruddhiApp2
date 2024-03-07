@@ -1,5 +1,6 @@
 package com.samruddhi.trading.equities.services;
 
+import com.samruddhi.trading.equities.config.ConfigManager;
 import com.samruddhi.trading.equities.config.SecurityConfigManager;
 import com.samruddhi.trading.equities.services.base.Authenticator;
 import common.JsonParser;
@@ -59,6 +60,7 @@ public class TradeStationAuthImpl implements Authenticator {
     private static final Logger logger = LoggerFactory.getLogger(TradeStationAuthImpl.class);
     private static final String CLIENT_ID_FROM_STEP1 = "FakGIXa4s9Rr89aC";
     private static final String ACCESS_TOKEN = "access_token";
+    private static final String REFRESH_TOKEN = "refresh_token";
     private final String CLIENT_ID;
     private final String CLIENT_SECRET;
     private static final String TOKEN_ENDPOINT = "https://signin.tradestation.com/oauth/token";
@@ -151,7 +153,7 @@ public class TradeStationAuthImpl implements Authenticator {
 
             StringEntity entity = new StringEntity("client_id=" + CLIENT_ID
                     + "&redirect_uri=http://localhost:80"
-                    + "&code=" + CLIENT_ID_FROM_STEP1
+                    + "&code=" + ConfigManager.getInstance().getProperty("code")
                     + "&grant_type=authorization_code"
                     + "&client_secret=" + CLIENT_SECRET, StandardCharsets.UTF_8);
             postRequest.setEntity(entity);
@@ -159,12 +161,14 @@ public class TradeStationAuthImpl implements Authenticator {
             CloseableHttpResponse response = httpClient.execute(postRequest);
 
             String responseString = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
-            //System.out.println("responseString" + responseString);
+
             if (response.getStatusLine().getStatusCode() == 200) {
 
                 accessTokenMayBe = JsonParser.getJsonTagValue(responseString, ACCESS_TOKEN);
-                System.out.println("Access Token: " + accessTokenMayBe);
+                Optional<String> refreshTokenMayBe = JsonParser.getJsonTagValue(responseString, REFRESH_TOKEN);
+                logger.info("Access Token: " + accessTokenMayBe);
                 cachedAccessToken.put(ACCESS_TOKEN, accessTokenMayBe.get());
+                cachedAccessToken.put(REFRESH_TOKEN, refreshTokenMayBe.get());
                 return accessTokenMayBe/* access token extracted from response */;
             } else {
                 throw new IOException("Failed to obtain access token: " + responseString);
@@ -176,17 +180,14 @@ public class TradeStationAuthImpl implements Authenticator {
         }
     }
 
+    public String getRefreshToken() {
+        return cachedAccessToken.get(REFRESH_TOKEN);
+
+    }
+
     private String basicAuthHeader() {
         String encodedCredentials = Base64.getEncoder().encodeToString((CLIENT_ID + ":" + CLIENT_SECRET).getBytes());
         return "Basic " + encodedCredentials;
-    }
-
-    @Override
-    /** return the API key we get from TradeStation
-     *
-     */
-    public String getApiKey() {
-        return "acklsdkadkkadadladda";
     }
 
     public static void main(String[] args) throws Exception {
@@ -194,9 +195,12 @@ public class TradeStationAuthImpl implements Authenticator {
 
         //TradeStationAuthImpl authImpl = new TradeStationAuthImpl();
         //authImpl.getAccessToken();
-        //authImpl.authorize();
-        Optional<String> accessToken = TradeStationAuthImpl.getInstance().getAccessToken();
+
+
+       /* Optional<String> accessToken = TradeStationAuthImpl.getInstance().getAccessToken();
         System.out.println(accessToken);
+        String refreshToken = TradeStationAuthImpl.getInstance().getRefreshToken();
+        System.out.println(refreshToken);*/
     }
 
     private static void startServer() throws Exception {
