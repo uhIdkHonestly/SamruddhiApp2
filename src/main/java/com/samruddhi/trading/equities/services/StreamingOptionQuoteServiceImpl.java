@@ -2,26 +2,18 @@ package com.samruddhi.trading.equities.services;
 
 
 import com.samruddhi.trading.equities.domain.OptionData;
-import com.samruddhi.trading.equities.logic.FileWriter;
-import com.samruddhi.trading.equities.services.base.GetOrdersByOrderIdService;
+import com.samruddhi.trading.equities.logic.FileDataWriter;
 import com.samruddhi.trading.equities.services.base.StreamingOptionQuoteService;
 import common.JsonParser;
-import okhttp3.HttpUrl;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
+import okhttp3.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-
-import java.io.InputStream;
-import java.net.URI;
+import java.io.BufferedReader;
+import java.io.Reader;
 import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 public class StreamingOptionQuoteServiceImpl implements StreamingOptionQuoteService {
 
@@ -32,13 +24,16 @@ public class StreamingOptionQuoteServiceImpl implements StreamingOptionQuoteServ
     private final String token;
 
     public StreamingOptionQuoteServiceImpl() {
-
         token = TradeStationAuthImpl.getInstance().getAccessToken().get();
     }
 
     @Override
     public OptionData getOptionQuote(String optionTicker) throws Exception {
-        OkHttpClient client = new OkHttpClient();
+
+        OkHttpClient client =  new OkHttpClient.Builder()
+                .readTimeout(30, TimeUnit.SECONDS) // Increase read timeout
+                .connectTimeout(30, TimeUnit.SECONDS) // Increase connection timeout
+                .build();
         OptionData optionData = null;
         try {
             HttpUrl url = HttpUrl.parse(OPTION_QUOTES_URL).newBuilder()
@@ -53,15 +48,25 @@ public class StreamingOptionQuoteServiceImpl implements StreamingOptionQuoteServ
                     .build();
 
             try (Response response = client.newCall(request).execute()) {
-                // Output the response body
-                String optionResponsejson =  buildResponseJson(response.body().byteStream());
-                FileWriter.writeToFile(optionResponsejson);
-                optionData = JsonParser.getOptionQuote(optionResponsejson);
+                try (ResponseBody responseBody = response.body();
+                     Reader reader = responseBody.charStream();
+                     BufferedReader bufferedReader = new BufferedReader(reader)) {
+                    StringBuilder stringBuilder = new StringBuilder();
+                    String line;
+                    while ((line = bufferedReader.readLine()) != null) {
+                        // Why is this
+                        if(line.contains("Heartbeat"))
+                            break;
+                        stringBuilder.append(line);
+                    }
+                    String optionResponseJson = stringBuilder.toString();
+                    FileDataWriter.writeToFile(optionResponseJson);
+                    optionData = JsonParser.getOptionQuote(optionResponseJson);
+                }
             } catch (Exception e) {
                 e.printStackTrace();
                 throw e;
             }
-
         } catch (Exception  e1) {
             e1.printStackTrace();
             throw e1;
@@ -77,6 +82,7 @@ public class StreamingOptionQuoteServiceImpl implements StreamingOptionQuoteServ
         int read;
         StringBuilder responseJson = new StringBuilder();
         while ((read = stream.read(buffer)) != -1) {
+            logger.info("read " + read + "");
             String chunk = new String(buffer, 0, read);
             responseJson.append(chunk);
         }
@@ -85,9 +91,11 @@ public class StreamingOptionQuoteServiceImpl implements StreamingOptionQuoteServ
 
     public static void main(String[] args) throws Exception {
         // Replace {underlying} with the actual underlying symbol you're interested in
-
         StreamingOptionQuoteServiceImpl streamingOptionQuoteService = new StreamingOptionQuoteServiceImpl();
-        OptionData optionData = streamingOptionQuoteService.getOptionQuote("AAPL 240308C167.5" );
+        // OptionData optionData = streamingOptionQuoteService.getOptionQuote("AAPL 240308C167.5" );
+
+        OptionData optionData = streamingOptionQuoteService.getOptionQuote("NVDA 240308C885" );
+
         logger.info(optionData.toString());
     }
 }

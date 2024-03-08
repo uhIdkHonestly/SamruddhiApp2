@@ -2,40 +2,30 @@ package com.samruddhi.trading.equities.services;
 
 import com.samruddhi.trading.equities.config.ConfigManager;
 import com.samruddhi.trading.equities.config.SecurityConfigManager;
+import com.samruddhi.trading.equities.logic.FileDataWriter;
 import com.samruddhi.trading.equities.services.base.Authenticator;
+import com.sun.net.httpserver.HttpServer;
 import common.JsonParser;
-import okhttp3.*;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.net.http.HttpResponse.BodyHandlers;
-import java.net.http.HttpTimeoutException;
-import java.nio.charset.StandardCharsets;
-import java.time.Duration;
-import java.util.*;
-
-import java.io.IOException;
-
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpServer;
-
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.Optional;
 
 /**
  * ==  Request ===
@@ -133,11 +123,10 @@ public class TradeStationAuthImpl implements Authenticator {
     @Override
     public Optional<String> getAccessToken() {
         // TO DO Enable me... after tests
-        //if (cachedAccessToken.containsKey(ACCESS_TOKEN))
-        //    return Optional.of(cachedAccessToken.get(ACCESS_TOKEN));
-
-        if (ConfigManager.getInstance().getProperty("ACCESS_TOKEN").length() > 0)
-            return Optional.of(ConfigManager.getInstance().getProperty("ACCESS_TOKEN"));
+        if (cachedAccessToken.containsKey(ACCESS_TOKEN))
+            return Optional.of(cachedAccessToken.get(ACCESS_TOKEN));
+        else if (ConfigManager.getInstance().getProperty(ACCESS_TOKEN).length() > 0) // TO REMOVE ME - this is for  initial testing
+            return Optional.of(ConfigManager.getInstance().getProperty(ACCESS_TOKEN));
 
         Optional<String> accessTokenMayBe = Optional.empty();
 
@@ -174,7 +163,10 @@ public class TradeStationAuthImpl implements Authenticator {
                 logger.info("Access Token: " + accessTokenMayBe);
                 cachedAccessToken.put(ACCESS_TOKEN, accessTokenMayBe.get());
                 cachedAccessToken.put(REFRESH_TOKEN, refreshTokenMayBe.get());
-                return accessTokenMayBe/* access token extracted from response */;
+
+                //TO DO remove me
+                // FileDataWriter.updateProperty(ACCESS_TOKEN, accessTokenMayBe.get());
+                return accessTokenMayBe;
             } else {
                 throw new IOException("Failed to obtain access token: " + responseString);
             }

@@ -1,7 +1,7 @@
 package com.samruddhi.trading.equities.services;
 
 import com.samruddhi.trading.equities.domain.Bar;
-import com.samruddhi.trading.equities.logic.FileWriter;
+import com.samruddhi.trading.equities.logic.FileDataWriter;
 import com.samruddhi.trading.equities.services.base.MarketDataService;
 import common.JsonParser;
 import org.slf4j.Logger;
@@ -51,7 +51,7 @@ public class MarketDataServiceImpl implements MarketDataService {
 
 
                 // TO DO Remove me after test
-                FileWriter.writeToFile(responseBody);
+                FileDataWriter.writeToFile(responseBody);
                 return JsonParser.getListOfBars(responseBody);
             } else {
                 logger.error("Error: HTTP status code " + response.statusCode());
