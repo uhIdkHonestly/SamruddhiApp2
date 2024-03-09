@@ -1,5 +1,7 @@
 package com.samruddhi.trading.equities.domain;
 
+import java.util.Objects;
+
 /** Pojo for Place Order Request payload
  *
  */
@@ -75,5 +77,31 @@ public class PlaceOrderPayload {
 
     public void setRoute(String route) {
         this.route = route;
+    }
+
+    @Override
+    public String toString() {
+        return "PlaceOrderPayload{" +
+                "AccountID='" + AccountID + '\'' +
+                ", symbol='" + symbol + '\'' +
+                ", quantity=" + quantity +
+                ", orderType='" + orderType + '\'' +
+                ", limitPrice=" + limitPrice +
+                ", tradeAction='" + tradeAction + '\'' +
+                ", timeInForce='" + timeInForce + '\'' +
+                ", route='" + route + '\'' +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof PlaceOrderPayload payload)) return false;
+        return getQuantity() == payload.getQuantity() && Double.compare(payload.getLimitPrice(), getLimitPrice()) == 0 && Objects.equals(getAccountID(), payload.getAccountID()) && Objects.equals(getSymbol(), payload.getSymbol()) && Objects.equals(getOrderType(), payload.getOrderType()) && Objects.equals(getTradeAction(), payload.getTradeAction()) && Objects.equals(getTimeInForce(), payload.getTimeInForce()) && Objects.equals(getRoute(), payload.getRoute());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getAccountID(), getSymbol(), getQuantity(), getOrderType(), getLimitPrice(), getTradeAction(), getTimeInForce(), getRoute());
     }
 }

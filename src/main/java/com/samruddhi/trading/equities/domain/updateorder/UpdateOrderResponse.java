@@ -11,7 +11,11 @@ public class UpdateOrderResponse {
     private String orderID;
 
 
-    // Constructor
+    public UpdateOrderResponse(String message, String orderID) {
+        this.message = message;
+        this.orderID = orderID;
+    }
+
     public UpdateOrderResponse() {
     }
 

@@ -12,6 +12,11 @@ public class Order {
     private String Message;
     private String OrderID;
 
+    public Order(String message, String orderID) {
+        Message = message;
+        OrderID = orderID;
+    }
+
     // Getters and Setters
     public String getMessage() {
         return Message;
