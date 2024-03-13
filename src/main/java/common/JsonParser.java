@@ -36,6 +36,25 @@ public class JsonParser {
         return tagValue;
     }
 
+    public static String getJsonTag(String jsonString, String key) {
+
+
+        try {
+            // Create an ObjectMapper
+            ObjectMapper objectMapper = new ObjectMapper();
+            // Parse the JSON string into a JsonNode
+            JsonNode jsonNode = objectMapper.readTree(jsonString);
+
+            // Extract the value associated with the "tag" key
+            String value = jsonNode.get(key).asText();
+            return value;
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+
     public static List<Bar> getListOfBars(String jsonString) {
 
 

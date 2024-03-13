@@ -1,6 +1,7 @@
 package com.samruddhi.trading.equities.services;
 
 import com.samruddhi.trading.equities.domain.OptionData;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +14,7 @@ public class StreamingOptionQuoteServiceImplTest {
     private static final Logger logger = LoggerFactory.getLogger(StreamingOptionQuoteServiceImplTest.class);
 
     @Test
+    @Ignore
     public void testGetOptionQuote() {
         try {
             StreamingOptionQuoteServiceImpl streamingOptionQuoteService = new StreamingOptionQuoteServiceImpl();

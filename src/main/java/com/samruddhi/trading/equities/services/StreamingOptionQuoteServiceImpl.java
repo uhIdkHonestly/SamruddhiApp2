@@ -43,8 +43,8 @@ public class StreamingOptionQuoteServiceImpl implements StreamingOptionQuoteServ
             // Constructing the request
             Request request = new Request.Builder()
                     .url(url)
-                    .addHeader("Accept", "application/json") // Example of a common header
-                    .header("Authorization", "Bearer " + token) // Replace 'your_token_here' with your actual token
+                    .addHeader("Accept", "application/json")
+                    .header("Authorization", "Bearer " + token)
                     .build();
 
             try (Response response = client.newCall(request).execute()) {
