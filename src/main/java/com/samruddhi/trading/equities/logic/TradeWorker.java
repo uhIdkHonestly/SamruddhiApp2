@@ -160,7 +160,7 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
             // Probable Buy call scenario
             currentStatus = CurrentStatus.UPTREND;
             // check if first time 5 crossing above 13 and 50 DAY EMAs, if it was buyable last minute we don't want to Buy now as we may be bit late
-            boolean isPastMinuteACallBuy = previousEmas.ema5day > previousEmas.ema50day && previousEmas.ema5day > previousEmas.ema13day;
+            boolean isPastMinuteACallBuy = previousEmas.ema13day > previousEmas.ema50day && previousEmas.ema5day > previousEmas.ema13day;
 
             // Initiate an Option buy order if all criteria met
             if (!isPastMinuteACallBuy && isMacdBullish && isRsiBullish) {
@@ -171,7 +171,7 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
             // Probable Buy put scenario
             currentStatus = CurrentStatus.DOWNTREND;
             // check if first time 5 crossing below 13 and 50 DAY EMAs, if it was buyable last minute we don't want to Sell now as we may be bit late
-            boolean isPastPastMinuteAPutBuy = previousEmas.ema5day < previousEmas.ema50day && previousEmas.ema5day < previousEmas.ema13day;
+            boolean isPastPastMinuteAPutBuy = previousEmas.ema13day < previousEmas.ema50day && previousEmas.ema5day < previousEmas.ema13day;
             if (!isPastPastMinuteAPutBuy && !isMacdBullish && !isRsiBullish) {
                 //initiatePutBuying(ticker, price);
                 orderFillStatus = initiateCallOrPutBuying(ticker, dailyBars.get(dailyBars.size() - 1).getClose(), 'P');
