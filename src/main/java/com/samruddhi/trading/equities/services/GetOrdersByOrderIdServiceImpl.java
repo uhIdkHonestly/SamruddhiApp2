@@ -14,6 +14,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
+import java.util.Map;
 
 public class GetOrdersByOrderIdServiceImpl implements GetOrdersByOrderIdService {
 
@@ -21,16 +22,14 @@ public class GetOrdersByOrderIdServiceImpl implements GetOrdersByOrderIdService 
 
     private final String GET_ORDERS_URL = "https://api.tradestation.com/v3/brokerage/accounts/%s/orders/%S";
 
-
     @Override
-    public GetOrdersByOrderIdResponse getOrders(String orderId) throws GetOrdersException {
+    public GetOrdersByOrderIdResponse getOrderFillStatus(String orderId) throws GetOrdersException {
         // Replace with your actual API token
         String token = TradeStationAuthImpl.getInstance().getAccessToken().get();
         int accountId = Integer.parseInt(ConfigManager.getInstance().getProperty("account.id"));
         String apiUrl = String.format(GET_ORDERS_URL, accountId);
 
         try {
-
             HttpResponse<String> response = createHttpRequest(apiUrl, token);
             // Check if the response status code is 200 (OK)
             if (response.statusCode() == 200) {

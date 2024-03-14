@@ -3,6 +3,7 @@ package core;
 import com.samruddhi.trading.equities.domain.Ticker;
 import com.samruddhi.trading.equities.domain.TradeWorkerStatus;
 import com.samruddhi.trading.equities.logic.TradeWorker;
+import com.samruddhi.trading.equities.quartz.TokenRefresherDaemon;
 import com.samruddhi.trading.equities.services.MarketDataServiceImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,7 +20,7 @@ public class TradingEngine {
 
     private static final Logger logger = LoggerFactory.getLogger(TradingEngine.class);
 
-    private static Integer MAX_THREADS = 50;
+    private static Integer MAX_THREADS = 20;
     private static TradingEngine instance = null;
     private ExecutorService executor;
 
@@ -44,6 +45,10 @@ public class TradingEngine {
     public List<Future<TradeWorkerStatus>> startEngine() {
         List<Future<TradeWorkerStatus>> tradeWorkerFutures = Collections.emptyList();
         try {
+            // Start Tradestaion access-token refresher
+            TokenRefresherDaemon daemon = new TokenRefresherDaemon();
+            daemon.scheduleTokenRefresher();
+
             // get ticker master
             TickertMaster tickertMaster = new TickertMaster();
             Set<Ticker> tickers = tickertMaster.getTickersForTheDay();

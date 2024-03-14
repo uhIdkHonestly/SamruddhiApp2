@@ -1,7 +1,6 @@
 package com.samruddhi.trading.equities.logic;
 
 import static com.samruddhi.trading.equities.domain.getordersbyid.OrderFillStatus.ORDER_FILL_STATUS_FAILED;
-import static com.samruddhi.trading.equities.logic.OptionOrderFillStatus.ORDER_STATUS_FAILED;
 import static com.samruddhi.trading.equities.logic.OptionOrderFillStatus.ORDER_STATUS_FILLED;
 import static com.samruddhi.trading.equities.logic.OptionOrderFillStatus.ORDER_STATUS_OPEN;
 
@@ -146,7 +145,7 @@ public class OptionOrderProcessorImpl implements OptionOrderProcessor {
     }
 
     private OrderFillStatus checkOrderFillStatus(String orderId) throws Exception {
-        GetOrdersByOrderIdResponse getOrdersByOrderIdResponse = getOrdersByOrderIdService.getOrders(orderId);
+        GetOrdersByOrderIdResponse getOrdersByOrderIdResponse = getOrdersByOrderIdService.getOrderFillStatus(orderId);
         if (getOrdersByOrderIdResponse.getErrors() != null && getOrdersByOrderIdResponse.getErrors().size() > 0) {
             return ORDER_FILL_STATUS_FAILED;
         } else if (getOrdersByOrderIdResponse.getOrders() != null && getOrdersByOrderIdResponse.getOrders().size() > 0) {

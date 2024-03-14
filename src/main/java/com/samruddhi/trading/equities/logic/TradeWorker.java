@@ -88,7 +88,7 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
         this.barsSincePurchase = new ArrayList<>();
         this.barsInCurrentTrend = new ArrayList<>();
         this.currentStatus = CurrentStatus.NO_STATUS;
-        ;
+
         this.tradeWorkerStatus = new TradeWorkerStatus("");
         this.previousEmas = new PreviousEmas(0, 0, 0);
         this.ticker = ticker;

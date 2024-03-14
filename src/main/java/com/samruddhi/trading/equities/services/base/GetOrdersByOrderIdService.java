@@ -4,5 +4,5 @@ import com.samruddhi.trading.equities.domain.getordersbyid.GetOrdersByOrderIdRes
 
 public interface GetOrdersByOrderIdService {
     // Get status of a single order
-    public GetOrdersByOrderIdResponse getOrders(String orderId) throws Exception;
+    public GetOrdersByOrderIdResponse getOrderFillStatus(String orderId) throws Exception;
 }
