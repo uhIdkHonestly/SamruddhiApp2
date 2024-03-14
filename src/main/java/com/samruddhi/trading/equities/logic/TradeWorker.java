@@ -156,7 +156,7 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
         boolean isRsiBullish = rsi > 40; // Fix me
 
         OrderFillStatus orderFillStatus = null;
-        if (ema5 > ema50 && ema5 > ema13 && previousEmas != null) {
+        if (ema13 > ema50 && ema5 > ema13 && previousEmas != null) {
             // Probable Buy call scenario
             currentStatus = CurrentStatus.UPTREND;
             // check if first time 5 crossing above 13 and 50 DAY EMAs, if it was buyable last minute we don't want to Buy now as we may be bit late
@@ -167,7 +167,7 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
                 orderFillStatus = initiateCallOrPutBuying(ticker, dailyBars.get(dailyBars.size() - 1).getClose(), 'C');
                 saveBuyStatus(orderFillStatus, true);
             }
-        } else if (ema5 < ema50 && ema5 < ema13 && previousEmas != null) {
+        } else if (ema13 < ema50 && ema5 < ema13 && previousEmas != null) {
             // Probable Buy put scenario
             currentStatus = CurrentStatus.DOWNTREND;
             // check if first time 5 crossing below 13 and 50 DAY EMAs, if it was buyable last minute we don't want to Sell now as we may be bit late
