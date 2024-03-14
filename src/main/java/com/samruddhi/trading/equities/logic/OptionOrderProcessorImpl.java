@@ -4,6 +4,8 @@ import static com.samruddhi.trading.equities.domain.getordersbyid.OrderFillStatu
 import static com.samruddhi.trading.equities.logic.OptionOrderFillStatus.ORDER_STATUS_FILLED;
 import static com.samruddhi.trading.equities.logic.OptionOrderFillStatus.ORDER_STATUS_OPEN;
 
+import static com.samruddhi.trading.equities.tradingmode.TradingModeEnum.DUMMY;
+
 import com.samruddhi.trading.equities.config.ConfigManager;
 import com.samruddhi.trading.equities.domain.NextStrikePrice;
 import com.samruddhi.trading.equities.domain.OptionData;
@@ -25,6 +27,10 @@ import com.samruddhi.trading.equities.services.base.OrderService;
 import com.samruddhi.trading.equities.services.base.StreamingOptionQuoteService;
 
 import com.samruddhi.trading.equities.domain.placeorder.Error;
+import com.samruddhi.trading.equities.services.dummy.DummyGetOrdersByOrderIdServiceImpl;
+import com.samruddhi.trading.equities.services.dummy.DummyOrderServiceImpl;
+import com.samruddhi.trading.equities.tradingmode.TradingMode;
+import com.samruddhi.trading.equities.tradingmode.TradingModeEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,13 +57,12 @@ public class OptionOrderProcessorImpl implements OptionOrderProcessor {
     private final OrderService orderService;
     private final GetOrdersByOrderIdService getOrdersByOrderIdService;
 
-    private int NUMBER_OF_RETRIES = 3;
 
     public OptionOrderProcessorImpl() {
         streamingOptionQuoteService = new StreamingOptionQuoteServiceImpl();
-
-        orderService = new OrderServiceImpl();
-        getOrdersByOrderIdService = new GetOrdersByOrderIdServiceImpl();
+        TradingModeEnum tradingModeEnum = TradingMode.getTradingMode();
+        orderService = (tradingModeEnum == DUMMY)?new DummyOrderServiceImpl() : new OrderServiceImpl();
+        getOrdersByOrderIdService = (tradingModeEnum == DUMMY)?new DummyGetOrdersByOrderIdServiceImpl(): new GetOrdersByOrderIdServiceImpl();
     }
 
     @Override
