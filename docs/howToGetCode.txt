@@ -1,0 +1,24 @@
+
+//The below works Use in Browser, needs a working localhost:80 http server that recieves redirect//
+https://signin.tradestation.com/authorize?response_type=code&client_id=COKKzfMyHCbSncPo5LOXtPKEzo2z7VtC&redirect_uri=http://localhost:80&audience=https://api.tradestation.com&state=STATE&scope=openid%20offline_access%20profile%20MarketData%20ReadAccount%20Trade%20Matrix%20OptionSpreads
+
+ //The below works Use in Browser, needs a working localhost:80 http server that recieves redirect//
+ https://signin.tradestation.com/authorize?response_type=code&client_id=COKKzfMyHCbSncPo5LOXtPKEzo2z7VtC&redirect_uri=http://localhost:80&audience=https://api.tradestation.com&state=STATE&scope=openid%20offline_access%20profile%20MarketData%20ReadAccount%20Trade%20Matrix%20OptionSpreads
+
+Simulated trading acct is: SIM2688797M
+URL https://sim-api.tradestation.com/v3
+
+
+API doc - https://api.tradestation.com/docs/fundamentals/sim-vs-live
+
+
+Workflow
+
+
+1) get the code vIa URL
+
+2) add to application.properties
+
+3) run the tests (wil also need acces_code in app.properties)
+
+OR run the real app(has intelligence to get anc cache , referesh the access-code)
