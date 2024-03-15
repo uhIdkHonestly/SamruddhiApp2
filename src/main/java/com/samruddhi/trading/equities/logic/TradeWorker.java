@@ -3,7 +3,6 @@ package com.samruddhi.trading.equities.logic;
 //import static com.samruddhi.trading.equities.services.MarketDataServiceImpl.TIME_UNIT_MINUTE;
 //import static com.samruddhi.trading.equities.services.MarketDataServiceImpl.TIME_UNIT_DAILY;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -49,20 +48,16 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
      */
 
     private String ticker;
-    /**
-     * Holds all the Bars since a buy or Call or Put is initiated until Sold
-     */
-    private List<Bar> barsSincePurchase;
-
-    /**
-     * Holds all the Bars in the last 3 intervals (3 minutes) to see a green uptrend or a red downtrend
-     */
-    private List<Bar> barsInCurrentTrend;
 
     /**
      * just the last minute's EMAs
      */
     private PreviousEmas previousEmas;
+
+    /**
+     *  last to last minutes EMAs
+     */
+    private PreviousEmas previousTwoMinuteAgoEmas;
 
     /**
      * What's my curent status ie UPTREND, DOWNTREND, CALL_HELD, PUT_HELD, NO_STATUS, storeed for chgecking worker status easily
@@ -85,12 +80,11 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
 
     public TradeWorker(MarketDataService marketDataService, String ticker) {
         this.marketDataService = marketDataService;
-        this.barsSincePurchase = new ArrayList<>();
-        this.barsInCurrentTrend = new ArrayList<>();
         this.currentStatus = CurrentStatus.NO_STATUS;
 
         this.tradeWorkerStatus = new TradeWorkerStatus("");
         this.previousEmas = new PreviousEmas(0, 0, 0);
+        this.previousTwoMinuteAgoEmas = new PreviousEmas(0, 0, 0);
         this.ticker = ticker;
         this.streamingOptionQuoteService = new StreamingOptionQuoteServiceImpl();
         this.optionOrderProcessor = new OptionOrderProcessorImpl();
@@ -163,22 +157,50 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
             boolean isPastMinuteACallBuy = previousEmas.ema13day > previousEmas.ema50day && previousEmas.ema5day > previousEmas.ema13day;
 
             // Initiate an Option buy order if all criteria met
-            if (!isPastMinuteACallBuy && isMacdBullish && isRsiBullish) {
+            if (!isCallBuyBasedOnPreviousEmas() && isMacdBullish && isRsiBullish) {
                 orderFillStatus = initiateCallOrPutBuying(ticker, dailyBars.get(dailyBars.size() - 1).getClose(), 'C');
                 saveBuyStatus(orderFillStatus, true);
             }
         } else if (ema13 < ema50 && ema5 < ema13 && previousEmas != null) {
             // Probable Buy put scenario
             currentStatus = CurrentStatus.DOWNTREND;
-            // check if first time 5 crossing below 13 and 50 DAY EMAs, if it was buyable last minute we don't want to Sell now as we may be bit late
-            boolean isPastPastMinuteAPutBuy = previousEmas.ema13day < previousEmas.ema50day && previousEmas.ema5day < previousEmas.ema13day;
-            if (!isPastPastMinuteAPutBuy && !isMacdBullish && !isRsiBullish) {
+
+            if (!isPutBuyBasedOnPreviousEmas() && !isMacdBullish && !isRsiBullish) {
                 //initiatePutBuying(ticker, price);
                 orderFillStatus = initiateCallOrPutBuying(ticker, dailyBars.get(dailyBars.size() - 1).getClose(), 'P');
                 saveBuyStatus(orderFillStatus, false);
             }
         }
+        previousTwoMinuteAgoEmas = previousEmas;
         previousEmas = new PreviousEmas(ema5, ema13, ema50);
+    }
+
+    /** checks If it was not a CALL buy signal in the past 2 minutes
+     *  check if first time 5 crossing above 13 and 50 DAY EMAs, if it was buyable last minute (0r last minus 1)  we don't want to Buy now as
+     *  we may be a bit late*/
+    private boolean isCallBuyBasedOnPreviousEmas() {
+        if(previousEmas.ema13day == 0 || previousTwoMinuteAgoEmas.ema13day == 0) {
+            // very beginning pf trading day, we ignore previous EMA check
+            return false;
+        } else {
+            boolean isCallBuyPerPreviousEma = previousEmas.ema13day > previousEmas.ema50day && previousEmas.ema5day > previousEmas.ema13day;
+            boolean isCallBuyPerPreTwoMinuteEma = previousTwoMinuteAgoEmas.ema13day > previousTwoMinuteAgoEmas.ema50day && previousTwoMinuteAgoEmas.ema5day > previousTwoMinuteAgoEmas.ema13day;
+            // We need  a XOR as both should not be true ie shd not be a buy past 2 mins
+            return isCallBuyPerPreviousEma ^ isCallBuyPerPreTwoMinuteEma;
+        }
+    }
+
+    /** checks If it was not a PUT buy signal in the past 2 minutes */
+    private boolean isPutBuyBasedOnPreviousEmas() {
+        if(previousEmas.ema13day == 0 || previousTwoMinuteAgoEmas.ema13day == 0) {
+            // very beginning pf trading day, we ignore previous EMA check
+            return false;
+        } else {
+            boolean isPastMinuteAPutBuy = previousEmas.ema13day < previousEmas.ema50day && previousEmas.ema5day < previousEmas.ema13day;
+            boolean isPastTwoMinuteAPutBuy = previousTwoMinuteAgoEmas.ema13day < previousTwoMinuteAgoEmas.ema50day && previousTwoMinuteAgoEmas.ema5day < previousTwoMinuteAgoEmas.ema13day;
+            // We need  a XOR as both should not be true ie shd not be a buy past 2 mins
+            return isPastMinuteAPutBuy ^ isPastTwoMinuteAPutBuy;
+        }
     }
 
     /**
@@ -251,13 +273,10 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
         boolean isCallSellPointReached = callSellPointHelper.determineIfCallSellCriteriaMet(recentBuyFillStatus, minuteBars, pastMinuteBars);
 
         if (isCallSellPointReached) {
-            // TO DO We need to sell this call Asap
             NextStrikePrice nextStrikePrice = OptionTickerProvider.getNextOptionTicker(ticker, pastMinuteBars.get(pastMinuteBars.size() - 1).getClose(), 'C');
             // CHeck here and other places,  if using Daily bars last price is ok or we need to get price from latest minute bar...
             OrderFillStatus orderFillStatus = initiateCallOrPutSelling(nextStrikePrice, ticker, pastMinuteBars.get(pastMinuteBars.size() - 1).getClose(), 'C');
-            // TO DO Store daily completed transactions in TradeWorkerStatus
-            // place a sell order and wait for completion of Order
-            // Need to do more work procssing status similar to saveBuyStatus
+            // Store daily completed transactions in TradeWorkerStatus
             if (orderFillStatus.getStatus() == ORDER_STATUS_OPEN)
                 orderFillStatus = repeatUntilSold(orderFillStatus.getOrderId(), nextStrikePrice, ticker, pastMinuteBars.get(pastMinuteBars.size() - 1).getClose());
 
@@ -280,13 +299,11 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
         // TO DO Fix the logic here
 
         if (isCallSellPointReached) {
-            // TO DO We need to sell this call Asap
+            // We need to sell this call Asap
             NextStrikePrice nextStrikePrice = OptionTickerProvider.getNextOptionTicker(ticker, dailyBars.get(dailyBars.size() - 1).getClose(), 'P');
             // CHeck here and other places,  if using Daily bars last price is ok or we need to get price from latest minute bar...
             OrderFillStatus orderFillStatus = initiateCallOrPutSelling(nextStrikePrice, ticker, dailyBars.get(dailyBars.size() - 1).getClose(), 'P');
-            // TO DO Store daily completed transactions in TradeWorkerStatus
             // place a sell order and wait for completion of Order
-            // Need to do more work procssing status similar to saveBuyStatus
             if (orderFillStatus.getStatus() == ORDER_STATUS_OPEN)
                 orderFillStatus = repeatUntilSold(orderFillStatus.getOrderId(), nextStrikePrice, ticker, dailyBars.get(dailyBars.size() - 1).getClose());
 
