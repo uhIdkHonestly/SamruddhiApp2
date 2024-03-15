@@ -16,8 +16,10 @@ public class TokenRefresherDaemon {
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
     private final Authenticator authenticator = TradeStationAuthImpl.getInstance();
 
-    public TokenRefresherDaemon() {
+    private int refreshIntervalMins;
 
+    public TokenRefresherDaemon() {
+        refreshIntervalMins = 18;
     }
 
     public void scheduleTokenRefresher() {
@@ -26,5 +28,13 @@ public class TokenRefresherDaemon {
 
     public void shutdown() {
         scheduler.shutdown();
+    }
+
+    public int getRefreshIntervalMins() {
+        return refreshIntervalMins;
+    }
+
+    public void setRefreshIntervalMins(int refreshIntervalMins) {
+        this.refreshIntervalMins = refreshIntervalMins;
     }
 }
