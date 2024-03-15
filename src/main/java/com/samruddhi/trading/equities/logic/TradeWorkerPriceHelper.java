@@ -26,7 +26,7 @@ public class TradeWorkerPriceHelper {
             double acceptableLowerPrice = buyFillStatus.getFillPrice() * threshHoldPercentage;
 
             if (acceptableLowerPrice < currentOptionPriceBar.getClose()) {
-                logger.info("For ticker {} the current price {} lower than buy price {} * thresh hold % {}. Hence we must sell the contract", buyFillStatus.getTicker(), currentPrice, buyPrice, threshHoldPercentage);
+                logger.info("For ticker {} the current price {} lower than buy price {} * threshhold % {}. Hence we must sell the contract", buyFillStatus.getTicker(), currentPrice, buyPrice, threshHoldPercentage);
                 return true;
             }
         }

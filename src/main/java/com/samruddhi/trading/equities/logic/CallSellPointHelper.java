@@ -33,10 +33,9 @@ public class CallSellPointHelper {
 
         // Validate RSI and VWAP,
         double rsi = RSICalculator.calculateRSI(dailyBars.subList(36, dailyBars.size()), 14);
-        boolean isRsiBullish = rsi > 40; // Fix me
 
         if ((ema5 < ema50 || ema5 < ema13 || !isMacdBullish) ||
-                (TradeWorkerPriceHelper.hasDroppedByGivenPercentage(recentBuyFillStatus, minuteBars.get(minuteBars.size() - 1), ConfigManager.getInstance().getAcceptablePriceDropPercent(recentBuyFillStatus.getTicker())))) {
+                (TradeWorkerPriceHelper.hasDroppedByGivenPercentage(recentBuyFillStatus, minuteBars.get(minuteBars.size() - 1), ConfigManager.getInstance().getAcceptablePriceDropPercent(recentBuyFillStatus.getFillPrice(), recentBuyFillStatus.getTicker())))) {
             return true;
         }
         return false;
@@ -57,7 +56,7 @@ public class CallSellPointHelper {
         boolean isRsiBullish = rsi > 40; // Fix me
 
         if ((ema5 > ema50 || ema5 > ema13 || isMacdBullish) ||
-                (TradeWorkerPriceHelper.hasDroppedByGivenPercentage(recentBuyFillStatus, minuteBars.get(minuteBars.size() - 1), ConfigManager.getInstance().getAcceptablePriceDropPercent(recentBuyFillStatus.getTicker())))) {
+                (TradeWorkerPriceHelper.hasDroppedByGivenPercentage(recentBuyFillStatus, minuteBars.get(minuteBars.size() - 1), ConfigManager.getInstance().getAcceptablePriceDropPercent(recentBuyFillStatus.getFillPrice(), recentBuyFillStatus.getTicker())))) {
             return true;
         }
 
