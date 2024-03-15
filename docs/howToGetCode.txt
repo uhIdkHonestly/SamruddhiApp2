@@ -21,4 +21,4 @@ Workflow
 
 3) run the tests (wil also need acces_code in app.properties)
 
-OR run the real app(has intelligence to get anc cache , referesh the access-code)
+OR run the real app(has intelligence to get anc cache, referesh the access-code)

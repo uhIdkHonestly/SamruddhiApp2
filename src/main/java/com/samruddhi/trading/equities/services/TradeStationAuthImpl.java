@@ -25,13 +25,11 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.Optional;
 
-import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodyHandlers;
-import java.util.Base64;
 
 /**
  * ==  Request ===
@@ -56,9 +54,8 @@ import java.util.Base64;
  */
 public class TradeStationAuthImpl implements Authenticator {
     private static final Logger logger = LoggerFactory.getLogger(TradeStationAuthImpl.class);
-    private static final String CLIENT_ID_FROM_STEP1 = "FakGIXa4s9Rr89aC";
     private static final String ACCESS_TOKEN_KEY = "access_token";
-    private static final String REFRESH_TOKEN = "refresh_token";
+    private static final String REFRESH_TOKEN_KEY = "refresh_token";
     private final String CLIENT_ID;
     private final String CLIENT_SECRET;
     private static final String TOKEN_ENDPOINT = "https://signin.tradestation.com/oauth/token";
@@ -117,13 +114,12 @@ public class TradeStationAuthImpl implements Authenticator {
             if (response.getStatusLine().getStatusCode() == 200) {
 
                 accessTokenMayBe = JsonParser.getJsonTagValue(responseString, ACCESS_TOKEN_KEY);
-                Optional<String> refreshTokenMayBe = JsonParser.getJsonTagValue(responseString, REFRESH_TOKEN);
+                Optional<String> refreshTokenMayBe = JsonParser.getJsonTagValue(responseString, REFRESH_TOKEN_KEY);
                 logger.info("Access Token: " + accessTokenMayBe);
+                logger.info("Refresh Token: " + refreshTokenMayBe);
                 cachedAccessToken.put(ACCESS_TOKEN_KEY, accessTokenMayBe.get());
-                cachedAccessToken.put(REFRESH_TOKEN, refreshTokenMayBe.get());
+                cachedAccessToken.put(REFRESH_TOKEN_KEY, refreshTokenMayBe.get());
 
-                //TO DO remove me
-                // FileDataWriter.updateProperty(ACCESS_TOKEN, accessTokenMayBe.get());
                 return accessTokenMayBe;
             } else {
                 throw new IOException("Failed to obtain access token: " + responseString);
@@ -137,8 +133,13 @@ public class TradeStationAuthImpl implements Authenticator {
 
     public String getRefreshToken() {
 
-        String refreshToken = cachedAccessToken.get(REFRESH_TOKEN);
-
+        String refreshToken = cachedAccessToken.get(REFRESH_TOKEN_KEY);
+        logger.info("refreshToken: " + refreshToken);
+        // TO DO REMOVE ME AFTEr TEST
+        if(refreshToken == null) {
+            refreshToken = "TlIEjBTksx45kRkGz5Swb6_cpOpNIZAR0WSDyebdvH3d-";
+        }
+        // TO DO REMOVE END Block
         String credentials = CLIENT_ID + ":" + CLIENT_SECRET;
         String encodedCredentials = Base64.getEncoder().encodeToString(credentials.getBytes(StandardCharsets.UTF_8));
 

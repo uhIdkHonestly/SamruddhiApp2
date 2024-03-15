@@ -21,8 +21,8 @@ public class Encrypter {
 
         saveSecretKey(secretKey, new File(System.getProperty("user.dir") + "/src/main/resources/secret.key"));
         //encrypt cient id key
-        String clientIdEnc = encrypt("COKKzfMyHCbSncPo5LOXtPKEzo2z7VtC", secretKey);
-        String secretEnc = encrypt("55DS4qsw8Ua76urM3sX-K4DVOIdw9gyDrZPs3vTM_k6tx_Wd4FpOJdoLwRH-wVFS", secretKey);
+        String clientIdEnc = encrypt("ABC-COKKzfMyHCbSncPo5LOXtPKEzo2z7VtC", secretKey);
+        String secretEnc = encrypt("DEF-55DS4qsw8Ua76urM3sX-K4DVOIdw9gyDrZPs3vTM_k6tx_Wd4FpOJdoLwRH-wVFS", secretKey);
 
         writeUsingBufferedWriter(Map.of("CLIENT_ID", clientIdEnc, "SECRET", secretEnc));
 
