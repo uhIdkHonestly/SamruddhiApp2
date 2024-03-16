@@ -3,6 +3,7 @@ package com.samruddhi.trading.equities.services;
 import com.samruddhi.trading.equities.domain.Bar;
 import com.samruddhi.trading.equities.logic.FileDataWriter;
 import com.samruddhi.trading.equities.services.base.MarketDataService;
+import com.samruddhi.trading.equities.tradingmode.TradingMode;
 import common.JsonParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,7 +20,7 @@ import java.util.List;
 public class MarketDataServiceImpl implements MarketDataService {
     private static final Logger logger = LoggerFactory.getLogger(MarketDataServiceImpl.class);
 
-    private final String MARKET_DATA_URL = "https://api.tradestation.com/v3/marketdata/barcharts/%s?interval=%s&unit=%s&barsback=%s&sessiontemplate=Default";
+    private final static String MARKET_DATA_URL = TradingMode.getMarketDataUrl();
 
     /**
      * For daily and minute chart please pass for  min -

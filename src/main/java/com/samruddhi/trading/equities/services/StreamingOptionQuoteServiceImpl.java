@@ -4,6 +4,7 @@ package com.samruddhi.trading.equities.services;
 import com.samruddhi.trading.equities.domain.OptionData;
 import com.samruddhi.trading.equities.logic.FileDataWriter;
 import com.samruddhi.trading.equities.services.base.StreamingOptionQuoteService;
+import com.samruddhi.trading.equities.tradingmode.TradingMode;
 import common.JsonParser;
 import okhttp3.*;
 import org.slf4j.Logger;
@@ -19,7 +20,7 @@ public class StreamingOptionQuoteServiceImpl implements StreamingOptionQuoteServ
 
     private static final Logger logger = LoggerFactory.getLogger(StreamingOptionQuoteServiceImpl.class);
     private static final HttpClient httpClient = HttpClient.newHttpClient();
-    private static final String OPTION_QUOTES_URL = "https://api.tradestation.com/v3/marketdata/stream/options/quotes";
+    private static final String OPTION_QUOTES_URL = TradingMode.optionsQuotgeUrl();
 
     private final String token;
 

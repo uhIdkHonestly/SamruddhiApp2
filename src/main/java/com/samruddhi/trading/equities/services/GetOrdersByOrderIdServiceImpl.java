@@ -4,6 +4,7 @@ import com.samruddhi.trading.equities.config.ConfigManager;
 import com.samruddhi.trading.equities.domain.getordersbyid.GetOrdersByOrderIdResponse;
 import com.samruddhi.trading.equities.exceptions.GetOrdersException;
 import com.samruddhi.trading.equities.services.base.GetOrdersByOrderIdService;
+import com.samruddhi.trading.equities.tradingmode.TradingMode;
 import common.JsonParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +21,7 @@ public class GetOrdersByOrderIdServiceImpl implements GetOrdersByOrderIdService 
 
     private static final Logger logger = LoggerFactory.getLogger(GetOrdersByOrderIdService.class);
 
-    private final String GET_ORDERS_URL = "https://api.tradestation.com/v3/brokerage/accounts/%s/orders/%S";
+    private static final String GET_ORDERS_URL = TradingMode.getOrdersUrl();
 
     @Override
     public GetOrdersByOrderIdResponse getOrderFillStatus(String orderId) throws GetOrdersException {

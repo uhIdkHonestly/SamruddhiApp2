@@ -5,6 +5,7 @@ import com.samruddhi.trading.equities.domain.PlaceOrderPayload;
 import com.samruddhi.trading.equities.domain.placeorder.PlaceOrderResponse;
 import com.samruddhi.trading.equities.domain.updateorder.UpdateOrderResponse;
 import com.samruddhi.trading.equities.services.base.OrderService;
+import com.samruddhi.trading.equities.tradingmode.TradingMode;
 import common.JsonParser;
 import okhttp3.*;
 import org.slf4j.Logger;
@@ -16,8 +17,8 @@ import java.net.URL;
 
 public class OrderServiceImpl implements OrderService {
     private static final Logger logger = LoggerFactory.getLogger(OrderServiceImpl.class);
-    private String PLACE_ORDER_URL = "https://api.tradestation.com/v3/orderexecution/orders";
-    private String CANCEL_ORDER_URL = "https://api.tradestation.com/v3/orderexecution/orders/%s";
+    private String PLACE_ORDER_URL = TradingMode.placeOrderUrl();
+    private String CANCEL_ORDER_URL = TradingMode.cancelOrderUrl();
 
     // TO DO fix me with proper option ticker and Limit order
     /**
