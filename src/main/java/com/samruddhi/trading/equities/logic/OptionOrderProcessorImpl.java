@@ -81,11 +81,12 @@ public class OptionOrderProcessorImpl implements OptionOrderProcessor {
         return processCallOrder(CALL_SELL_ORDER, nextStrikePrice, ticker, price);
     }
 
-    /**Place CALL buy Or Sell order
+    /**
+     * Place CALL buy Or Sell order
      *
      * @param buyOrSellAction Indicates if we are Buying or Selling
      * @param nextStrikePrice
-     * @param ticker Underlying stock
+     * @param ticker          Underlying stock
      * @param price
      * @return
      * @throws Exception
@@ -96,7 +97,7 @@ public class OptionOrderProcessorImpl implements OptionOrderProcessor {
         OptionData optionData = streamingOptionQuoteService.getOptionQuote(nextStrikePrice.getFullOptionTicker());
 
         // Check if below allowed max for Option contract
-        if(!ContractMaxPrice.validateMaxContractPriceByTicker(ticker, optionData.getMid(), price))
+        if (!ContractMaxPrice.validateMaxContractPriceByTicker(ticker, optionData.getMid(), price))
             return OrderFillStatus.ORDER_FILL_STATUS_ABORTED;
 
         double callLimitPrice = getCallOrderPlacementPrice(optionData);
@@ -135,7 +136,7 @@ public class OptionOrderProcessorImpl implements OptionOrderProcessor {
         OptionData optionData = streamingOptionQuoteService.getOptionQuote(nextStrikePrice.getFullOptionTicker());
 
         // Check if below allowed max for Option contract
-        if(!ContractMaxPrice.validateMaxContractPriceByTicker(ticker, optionData.getMid(), price))
+        if (!ContractMaxPrice.validateMaxContractPriceByTicker(ticker, optionData.getMid(), price))
             return OrderFillStatus.ORDER_FILL_STATUS_ABORTED;
 
         double putLimitPrice = getPutOrderPlacementPrice(optionData);
@@ -186,9 +187,9 @@ public class OptionOrderProcessorImpl implements OptionOrderProcessor {
             // TO DO - Need to check and throw exception if no legs
             Leg leg = order.getLegs().get(0);
             if (order.getStatus().equals(ORDER_STATUS_FILLED)) {
-                return new OrderFillStatus(orderId, ORDER_STATUS_FILLED, order.getFilledPrice(), leg.getExecQuantity(), leg.getSymbol() + " " + leg.getStrikePrice()  + " " + leg.getExpirationDate());
+                return new OrderFillStatus(orderId, ORDER_STATUS_FILLED, order.getFilledPrice(), leg.getExecQuantity(), leg.getSymbol() + " " + leg.getStrikePrice() + " " + leg.getExpirationDate());
             } else if (order.getStatus().equals(ORDER_STATUS_OPEN)) {
-                return new OrderFillStatus(orderId, ORDER_STATUS_OPEN, order.getFilledPrice(), leg.getExecQuantity(), leg.getSymbol() + " " + leg.getStrikePrice()  + " " + leg.getExpirationDate());
+                return new OrderFillStatus(orderId, ORDER_STATUS_OPEN, order.getFilledPrice(), leg.getExecQuantity(), leg.getSymbol() + " " + leg.getStrikePrice() + " " + leg.getExpirationDate());
             }
         }
         return ORDER_FILL_STATUS_FAILED;
@@ -218,7 +219,8 @@ public class OptionOrderProcessorImpl implements OptionOrderProcessor {
         orderService.cancelOrder(orderId);
     }
 
-    /** this will replace existing CALL or PUT sell order with a new LIMIT price
+    /**
+     * this will replace existing CALL or PUT sell order with a new LIMIT price
      *
      * @param orderId
      * @param nextStrikePrice
@@ -231,12 +233,12 @@ public class OptionOrderProcessorImpl implements OptionOrderProcessor {
     public OrderFillStatus replaceCallOrPutSellOrder(String orderId, NextStrikePrice nextStrikePrice, String ticker, double price) throws Exception {
 
         OrderFillStatus orderFillStatus = null;
-        while(orderFillStatus.getStatus() == null || orderFillStatus.getStatus() == ORDER_STATUS_OPEN) {
+        while (orderFillStatus.getStatus() == null || orderFillStatus.getStatus() == ORDER_STATUS_OPEN) {
             OptionData optionData = streamingOptionQuoteService.getOptionQuote(nextStrikePrice.getFullOptionTicker());
             double callLimitPrice = getCallOrderPlacementPrice(optionData);
             UpdateOrderResponse updateOrderResponse = orderService.updateOrder(orderId, callLimitPrice);
             orderFillStatus = checkOrderFillStatus(orderId);
-            if(orderFillStatus == ORDER_FILL_STATUS_FAILED) {
+            if (orderFillStatus == ORDER_FILL_STATUS_FAILED) {
                 throw new Exception(String.format("ReplaceCallSellOrder failed  for order %s ticker %s", orderId, ticker));
             }
         }

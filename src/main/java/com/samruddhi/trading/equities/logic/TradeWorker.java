@@ -54,7 +54,7 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
     private PreviousEmas previousEmas;
 
     /**
-     *  last to last minutes EMAs
+     * last to last minutes EMAs
      */
     private PreviousEmas previousTwoMinuteAgoEmas;
 
@@ -174,11 +174,13 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
         previousEmas = new PreviousEmas(ema5, ema13, ema50);
     }
 
-    /** checks If it was not a CALL buy signal in the past 2 minutes
-     *  check if first time 5 crossing above 13 and 50 DAY EMAs, if it was buyable last minute (0r last minus 1)  we don't want to Buy now as
-     *  we may be a bit late*/
+    /**
+     * checks If it was not a CALL buy signal in the past 2 minutes
+     * check if first time 5 crossing above 13 and 50 DAY EMAs, if it was buyable last minute (0r last minus 1)  we don't want to Buy now as
+     * we may be a bit late
+     */
     private boolean isCallBuyBasedOnPreviousEmas() {
-        if(previousEmas.ema13day == 0 || previousTwoMinuteAgoEmas.ema13day == 0) {
+        if (previousEmas.ema13day == 0 || previousTwoMinuteAgoEmas.ema13day == 0) {
             // very beginning pf trading day, we ignore previous EMA check
             return false;
         } else {
@@ -189,9 +191,11 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
         }
     }
 
-    /** checks If it was not a PUT buy signal in the past 2 minutes */
+    /**
+     * checks If it was not a PUT buy signal in the past 2 minutes
+     */
     private boolean isPutBuyBasedOnPreviousEmas() {
-        if(previousEmas.ema13day == 0 || previousTwoMinuteAgoEmas.ema13day == 0) {
+        if (previousEmas.ema13day == 0 || previousTwoMinuteAgoEmas.ema13day == 0) {
             // very beginning pf trading day, we ignore previous EMA check
             return false;
         } else {
