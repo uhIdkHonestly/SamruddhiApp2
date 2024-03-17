@@ -34,6 +34,7 @@ import com.samruddhi.trading.equities.tradingmode.TradingModeEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
@@ -44,6 +45,9 @@ public class OptionOrderProcessorImpl implements OptionOrderProcessor {
     private static final Logger logger = LoggerFactory.getLogger(OptionOrderProcessorImpl.class);
     private static final String CALL_BUY_ORDER = "BUY";
     private static final String CALL_SELL_ORDER = "SELL";
+
+    private static final String PUT_BUY_ORDER = "BUY";
+    private static final String PUT_SELL_ORDER = "SELL";
 
     private static final int MIN_CALL_QUANTITY = 2;
     private static final int MIN_PUT_QUANTITY = 2;
@@ -88,7 +92,7 @@ public class OptionOrderProcessorImpl implements OptionOrderProcessor {
      */
 
     private OrderFillStatus processCallOrder(String buyOrSellAction, NextStrikePrice nextStrikePrice, String ticker, double price) throws Exception {
-        // Place call BUY
+        logger.info("entered processCallOrder for {} for {} ticker {} price {}", buyOrSellAction, nextStrikePrice, ticker, price);
         OptionData optionData = streamingOptionQuoteService.getOptionQuote(nextStrikePrice.getFullOptionTicker());
 
         // Check if below allowed max for Option contract
@@ -115,22 +119,46 @@ public class OptionOrderProcessorImpl implements OptionOrderProcessor {
     }
 
     @Override
-    public OrderFillStatus createPutBuyOrder(NextStrikePrice nextStrikePrice, String ticker, double price) {
-        // TO DO Just like call order
-        int i = 0;
-        while (i < ORDER_FILL_RESPONSE_CHECK_TRIES) {
-
-        }
-        return null;
+    public OrderFillStatus createPutBuyOrder(NextStrikePrice nextStrikePrice, String ticker, double price) throws Exception {
+        logger.info("PUT Buy Order for {}", nextStrikePrice);
+        // Place PUT BUY order
+        return processPutOrder(PUT_BUY_ORDER, nextStrikePrice, ticker, price);
     }
 
     public OrderFillStatus createPutSellOrder(NextStrikePrice nextStrikePrice, String ticker, double price) throws Exception {
-        // TO DO  Implement me
-        return null;
+        logger.info("PUT Sell Order for {}", nextStrikePrice);
+        return processPutOrder(PUT_SELL_ORDER, nextStrikePrice, ticker, price);
     }
 
-    // TO DO
+    private OrderFillStatus processPutOrder(String buyOrSellAction, NextStrikePrice nextStrikePrice, String ticker, double price) throws Exception {
+        logger.info("entered processPutOrder for {} for {} ticker {} price {}", buyOrSellAction, nextStrikePrice, ticker, price);
+        OptionData optionData = streamingOptionQuoteService.getOptionQuote(nextStrikePrice.getFullOptionTicker());
+
+        // Check if below allowed max for Option contract
+        if(!ContractMaxPrice.validateMaxContractPriceByTicker(ticker, optionData.getMid(), price))
+            return OrderFillStatus.ORDER_FILL_STATUS_ABORTED;
+
+        double putLimitPrice = getPutOrderPlacementPrice(optionData);
+
+        PlaceOrderPayload payload = new PlaceOrderPayload();
+        String encodedOptionTicker = URLEncoder.encode(ticker + " " + nextStrikePrice.getDateWithStrike(), StandardCharsets.UTF_8.toString());
+
+        payload.setAccountID(ConfigManager.getInstance().getProperty("account.id"));
+        payload.setSymbol(encodedOptionTicker);
+        payload.setQuantity(MIN_PUT_QUANTITY);
+        payload.setTradeAction(buyOrSellAction);
+        payload.setLimitPrice(putLimitPrice);
+
+        PlaceOrderResponse placeOrderResponse = orderService.placeOrder(payload);
+
+        String orderId = getOrderId(placeOrderResponse, nextStrikePrice, ticker);
+
+        OrderFillStatus orderFillStatus = waitForOrderFill(orderId);
+        return orderFillStatus;
+    }
+
     public OrderFillStatus cancelOrder(long orderId) throws Exception {
+        // TO DO
         return null;
     }
 
@@ -179,6 +207,10 @@ public class OptionOrderProcessorImpl implements OptionOrderProcessor {
     }
 
     private double getCallOrderPlacementPrice(OptionData optionData) {
+        return (optionData.getAsk() - optionData.getBid()) * BID_ASK_MULTIPLIER;
+    }
+
+    private double getPutOrderPlacementPrice(OptionData optionData) {
         return (optionData.getAsk() - optionData.getBid()) * BID_ASK_MULTIPLIER;
     }
 
