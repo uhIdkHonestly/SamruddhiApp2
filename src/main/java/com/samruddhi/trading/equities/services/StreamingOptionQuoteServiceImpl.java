@@ -20,7 +20,7 @@ public class StreamingOptionQuoteServiceImpl implements StreamingOptionQuoteServ
 
     private static final Logger logger = LoggerFactory.getLogger(StreamingOptionQuoteServiceImpl.class);
     private static final HttpClient httpClient = HttpClient.newHttpClient();
-    private static final String OPTION_QUOTES_URL = TradingMode.optionsQuotgeUrl();
+    private static final String OPTION_QUOTES_URL = TradingMode.optionsQuoteUrl();
 
     private final String token;
 

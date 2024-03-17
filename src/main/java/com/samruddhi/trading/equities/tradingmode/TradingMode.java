@@ -48,7 +48,7 @@ public class TradingMode {
         }
     }
 
-    public static String optionsQuotgeUrl() {
+    public static String optionsQuoteUrl() {
         TradingModeEnum tradingModeEnum = getTradingMode();
 
         if (tradingModeEnum == TradingModeEnum.SIMULATED) {
