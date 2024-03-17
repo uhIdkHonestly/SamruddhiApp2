@@ -63,10 +63,10 @@ public class OptionOrderProcessorImpl implements OptionOrderProcessor {
 
 
     public OptionOrderProcessorImpl() {
+
         streamingOptionQuoteService = new StreamingOptionQuoteServiceImpl();
-        TradingModeEnum tradingModeEnum = TradingMode.getTradingMode();
-        orderService = (tradingModeEnum == DUMMY)?new DummyOrderServiceImpl() : new OrderServiceImpl();
-        getOrdersByOrderIdService = (tradingModeEnum == DUMMY)?new DummyGetOrdersByOrderIdServiceImpl(): new GetOrdersByOrderIdServiceImpl();
+        orderService = new OrderServiceImpl();
+        getOrdersByOrderIdService = new GetOrdersByOrderIdServiceImpl();
     }
 
     @Override

@@ -44,9 +44,8 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
     private boolean isTerminated = false;
     private MarketDataService marketDataService;
     /**
-     * This ticker is injected to the COnstructor,  TradeWorker can only work with one Stock like AAPL at a time
+     * This ticker is injected to the Constructor,  TradeWorker can only work with one Stock like AAPL at a time
      */
-
     private String ticker;
 
     /**
