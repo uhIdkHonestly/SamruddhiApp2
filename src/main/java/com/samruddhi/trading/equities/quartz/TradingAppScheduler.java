@@ -14,7 +14,7 @@ import java.util.TimeZone;
 
 public class TradingAppScheduler {
 
-    public void startJob() throws SchedulerException {
+    public static void scheduleJob() throws SchedulerException {
         JobDetail job = JobBuilder.newJob(TradingApp.class)
                 .withIdentity("tradingApp", "group1")
                 .build();
@@ -38,6 +38,10 @@ public class TradingAppScheduler {
                         .withSchedule(CronScheduleBuilder.dailyAtHourAndMinute(16, 0)
                                 .inTimeZone(TimeZone.getTimeZone("America/New_York")))
                         .build());
+    }
+
+    public static void main(String[] args) throws Exception{
+        scheduleJob();
     }
 
 }
