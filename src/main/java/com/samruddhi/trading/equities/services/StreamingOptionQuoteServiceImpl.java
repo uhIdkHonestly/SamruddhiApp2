@@ -55,7 +55,7 @@ public class StreamingOptionQuoteServiceImpl implements StreamingOptionQuoteServ
                     StringBuilder stringBuilder = new StringBuilder();
                     String line;
                     while ((line = bufferedReader.readLine()) != null) {
-                        // Why is this
+                        // we do this as there was a bug as end of stream was not provided
                         if(line.contains("Heartbeat"))
                             break;
                         stringBuilder.append(line);
@@ -77,8 +77,6 @@ public class StreamingOptionQuoteServiceImpl implements StreamingOptionQuoteServ
     }
 
     private String buildResponseJson(java.io.InputStream stream) throws IOException {
-        // Implement the logic to read from the stream
-        // For example, reading continuously until a certain condition is met
         byte[] buffer = new byte[1024];
         int read;
         StringBuilder responseJson = new StringBuilder();

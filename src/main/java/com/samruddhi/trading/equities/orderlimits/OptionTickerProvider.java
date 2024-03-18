@@ -1,8 +1,9 @@
 package com.samruddhi.trading.equities.orderlimits;
 
 
+import static com.samruddhi.trading.equities.orderlimits.NearestOptionStrikePrice.getNearestOptionCallStrikePrice;
+
 import com.samruddhi.trading.equities.domain.NextStrikePrice;
-import com.samruddhi.trading.equities.logic.NumberFormatHelper;
 import com.samruddhi.trading.equities.logic.OptionExpiryPeriod;
 
 import java.time.DayOfWeek;
@@ -41,17 +42,16 @@ public class OptionTickerProvider {
 
     public static NextStrikePrice getNextOptionTicker(String ticker, double price, char callOrPut) {
         String nextExpiryDate = OptionExpiryPeriod.hasDailyOptions(ticker) ? getToday() : getNextFriday();
-        //String zeroPaddedPrice = NumberFormatHelper.formatOptionStrike(OptionTickerProvider.nextStrikePrice(ticker, price, 0));
-        double strikePrice =  OptionTickerProvider.nextStrikePrice(ticker, price, 0);
+        double strikePrice = nextStrikePrice(ticker, price);
 
-       // "Symbol": "MSFT 211217P332.5",
+        // "Symbol": "MSFT 211217P332.5",
         StringBuilder fulltickerSb = new StringBuilder(ticker);
         fulltickerSb.append(" ");
         fulltickerSb.append(nextExpiryDate);
         fulltickerSb.append(callOrPut);
         fulltickerSb.append(strikePrice);
         // We may not need this piece
-        StringBuilder tickerWithDateSb = new StringBuilder(strikePrice+"");
+        StringBuilder tickerWithDateSb = new StringBuilder(strikePrice + "");
         tickerWithDateSb.append(nextExpiryDate);
         tickerWithDateSb.append(callOrPut);
 
@@ -81,32 +81,29 @@ public class OptionTickerProvider {
      *
      * @param ticker
      * @param price
-     * @param offset
      * @return
      */
-    public static double nextStrikePrice(String ticker, double price, int offset) {
-        double floorPrice = 0;
+    private static double nextStrikePrice(String ticker, double price) {
+        double closestStrikePrice = 0;
 
         // ETFs are rounded down to the nearest number, other logic based on Pricing needs fixing
         if (OptionExpiryPeriod.hasDailyOptions(ticker)) {
-            floorPrice = (int) Math.floor(price);
+            closestStrikePrice = getNearestOptionCallStrikePrice(price, 1);
         } else {
             int priceInt = (int) Math.floor(price);
             if (priceInt < 30) {
-                floorPrice = priceInt - 0.50;
+                closestStrikePrice = getNearestOptionCallStrikePrice(price, 0.5);
             } else if (priceInt < 120) {
-                floorPrice = priceInt - 1;
+                closestStrikePrice = getNearestOptionCallStrikePrice(price, 1);
             } else if (priceInt < 200) {
-                floorPrice = priceInt - 2.5;
+                closestStrikePrice = getNearestOptionCallStrikePrice(price, 2.5);
             } else if (priceInt < 500) {
-                floorPrice = priceInt - 5;
+                closestStrikePrice = getNearestOptionCallStrikePrice(price, 5);
             } else {
-                floorPrice = priceInt - 10;
+                closestStrikePrice = getNearestOptionCallStrikePrice(price, 10);
             }
-            return floorPrice;
         }
-
-        return floorPrice;
+        return closestStrikePrice;
     }
 
 }
