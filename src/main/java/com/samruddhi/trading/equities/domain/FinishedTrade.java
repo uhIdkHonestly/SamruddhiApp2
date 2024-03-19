@@ -1,9 +1,12 @@
 package com.samruddhi.trading.equities.domain;
 
 import java.time.LocalTime;
+import java.util.Objects;
 
 public class FinishedTrade {
     private String ticker;
+
+
     private double buyPrice;
     private double sellPrice;
     private LocalTime entry;
@@ -19,5 +22,30 @@ public class FinishedTrade {
         this.exit = exit;
         this.quantity = quantity;
         this.profitOrLoss = profitOrLoss;
+    }
+
+    @Override
+    public String toString() {
+        return "{" +
+                "ticker='" + ticker + '\'' +
+                ", buyPrice=" + buyPrice +
+                ", sellPrice=" + sellPrice +
+                ", entry=" + entry +
+                ", exit=" + exit +
+                ", quantity=" + quantity +
+                ", profitOrLoss=" + profitOrLoss +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof FinishedTrade that)) return false;
+        return Double.compare(that.buyPrice, buyPrice) == 0 && Double.compare(that.sellPrice, sellPrice) == 0 && quantity == that.quantity && Double.compare(that.profitOrLoss, profitOrLoss) == 0 && Objects.equals(ticker, that.ticker) && Objects.equals(entry, that.entry) && Objects.equals(exit, that.exit);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(ticker, buyPrice, sellPrice, entry, exit, quantity, profitOrLoss);
     }
 }

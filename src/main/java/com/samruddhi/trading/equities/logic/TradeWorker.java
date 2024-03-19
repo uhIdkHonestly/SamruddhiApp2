@@ -11,6 +11,7 @@ import com.samruddhi.trading.equities.domain.NextStrikePrice;
 import com.samruddhi.trading.equities.domain.getordersbyid.OrderFillStatus;
 import com.samruddhi.trading.equities.logic.base.OptionOrderProcessor;
 import com.samruddhi.trading.equities.orderlimits.OptionTickerProvider;
+import com.samruddhi.trading.equities.quartz.ConcurrentCompletedTradeQueue;
 import com.samruddhi.trading.equities.services.StreamingOptionQuoteServiceImpl;
 import com.samruddhi.trading.equities.services.base.StreamingOptionQuoteService;
 import org.slf4j.Logger;
@@ -77,6 +78,8 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
 
     private StreamingOptionQuoteService streamingOptionQuoteService;
 
+    private ConcurrentCompletedTradeQueue concurrentCompletedTradeQueue;
+
     public TradeWorker(MarketDataService marketDataService, String ticker) {
         this.marketDataService = marketDataService;
         this.currentStatus = CurrentStatus.NO_STATUS;
@@ -87,6 +90,7 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
         this.ticker = ticker;
         this.streamingOptionQuoteService = new StreamingOptionQuoteServiceImpl();
         this.optionOrderProcessor = new OptionOrderProcessorImpl();
+        this.concurrentCompletedTradeQueue = ConcurrentCompletedTradeQueue.getInstance();
     }
 
     public void triggerTermination() {
@@ -321,6 +325,9 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
         FinishedTrade finishedTrade = new FinishedTrade(sellFillStatus.getTicker(), recentBuyFillStatus.getFillPrice(), sellFillStatus.getFillPrice(),
                 recentBuyFillStatus.getExecutionTime(), sellFillStatus.getExecutionTime(), sellFillStatus.getFillQuantity(), calculateProfit(sellFillStatus)); // calculate profit
         tradeWorkerStatus.addFinishedTrade(finishedTrade);
+
+        concurrentCompletedTradeQueue.addToQueue(finishedTrade.toString());
+
     }
 
     private double calculateProfit(OrderFillStatus sellFillStatus) {
