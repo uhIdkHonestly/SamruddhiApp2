@@ -73,7 +73,7 @@ public class OptionOrderProcessorImpl implements OptionOrderProcessor {
 
     @Override
     public OrderFillStatus createCallBuyOrder(NextStrikePrice nextStrikePrice, String ticker, double price) throws Exception {
-        logger.info("Call process Call Buy Order for {}", nextStrikePrice);
+        logger.info("createCallBuyOrder Order for {}", nextStrikePrice);
         // Place call BUY order
         return processCallOrder(CALL_BUY_ORDER, nextStrikePrice, ticker, price);
     }
