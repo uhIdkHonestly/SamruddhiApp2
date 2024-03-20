@@ -100,8 +100,10 @@ public class OptionOrderProcessorImpl implements OptionOrderProcessor {
 
         // Check if below allowed max for Option contract
         if(buyOrSellAction == BUY_ORDER) {
-            if (!ContractMaxPrice.validateMaxContractPriceByTicker(ticker, optionData.getMid(), price))
+            if (!ContractMaxPrice.validateMaxContractPriceByTicker(ticker, optionData.getMid(), price)) {
+                logger.info("Not buying CALL for ticker {} due to high price {}", nextStrikePrice.getFullOptionTicker(), price);
                 return OrderFillStatus.ORDER_FILL_STATUS_ABORTED;
+            }
         }
 
         double callLimitPrice = getCallOrderPlacementPrice(optionData);
@@ -141,8 +143,10 @@ public class OptionOrderProcessorImpl implements OptionOrderProcessor {
 
         // Check if below allowed max for Option contract
         if(buyOrSellAction == BUY_ORDER) {
-            if (!ContractMaxPrice.validateMaxContractPriceByTicker(ticker, optionData.getMid(), price))
+            if (!ContractMaxPrice.validateMaxContractPriceByTicker(ticker, optionData.getMid(), price)) {
+                logger.info("Not buying PUT for ticker {} due to high price {}", nextStrikePrice.getFullOptionTicker(), price);
                 return OrderFillStatus.ORDER_FILL_STATUS_ABORTED;
+            }
         }
 
         double putLimitPrice = getPutOrderPlacementPrice(optionData);

@@ -156,8 +156,6 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
         if (ema13 > ema50 && ema5 > ema13 && previousEmas != null) {
             // Probable Buy call scenario
             currentStatus = CurrentStatus.UPTREND;
-            // check if first time 5 crossing above 13 and 50 Period EMAs, if it was buyable last minute we don't want to Buy now as we may be a bit late
-            boolean isPastMinuteACallBuy = previousEmas.ema13day > previousEmas.ema50day && previousEmas.ema5day > previousEmas.ema13day;
 
             // Initiate an Option buy order if all criteria met
             if (!isCallBuyBasedOnPreviousEmas() && isMacdBullish && isRsiBullish) {
