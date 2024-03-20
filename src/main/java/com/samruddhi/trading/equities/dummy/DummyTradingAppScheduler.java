@@ -40,7 +40,7 @@ public class DummyTradingAppScheduler {
                         .build());
     }
 
-    public static void main(String[] args) throws Exception{
+    public static void main(String[] args) throws Exception {
         scheduleJob();
     }
 }

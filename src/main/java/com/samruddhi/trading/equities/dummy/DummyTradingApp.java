@@ -1,7 +1,5 @@
 package com.samruddhi.trading.equities.dummy;
 
-import com.samruddhi.trading.equities.logic.TradeWorker;
-import com.samruddhi.trading.equities.services.MarketDataServiceImpl;
 import core.TradingApp;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
@@ -9,7 +7,6 @@ import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -40,6 +37,7 @@ public class DummyTradingApp implements Job {
         }
         logger.info("Exiting DummyTradingApp");
     }
+
     private void shutdownHook() {
 
         // Keep job alive until a condition is met (e.g., time-based)
@@ -52,7 +50,6 @@ public class DummyTradingApp implements Job {
             }
         }
     }
-
 
     private class SimpleCallable<String> implements Callable<java.lang.String> {
 
@@ -67,9 +64,9 @@ public class DummyTradingApp implements Job {
 
         @Override
         public java.lang.String call() throws Exception {
-            while(!breakLoop) {
+            while (!breakLoop) {
                 logger.info("SimpleCallable Call for {} at {}", ticker, LocalDateTime.now());
-                 Thread.sleep(4000);
+                Thread.sleep(4000);
             }
             return "Processing ticker" + ticker;
         }
