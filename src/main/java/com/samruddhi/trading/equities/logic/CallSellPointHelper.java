@@ -31,7 +31,7 @@ public class CallSellPointHelper {
         double[] macd = MACDCalculator.computeMACD(bars26Days, 12, 26, 9);
         boolean isMacdBullish = MACDCalculator.isMACDTrendBullish(macd[0], macd[1]);
 
-        // Validate RSI and VWAP,
+        // Validate RSI and VWAP in the future,
         double rsi = RSICalculator.calculateRSI(dailyBars.subList(36, dailyBars.size()), 14);
 
         if ((ema5 < ema50 || ema5 < ema13 || !isMacdBullish) ||

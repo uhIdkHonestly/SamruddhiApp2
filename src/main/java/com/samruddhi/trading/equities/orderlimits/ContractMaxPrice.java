@@ -18,9 +18,9 @@ public class ContractMaxPrice {
         } else if (stockPrice < 200) {
           allowedMaxContractPrice = 7;
         } else if (stockPrice < 500) {
-          allowedMaxContractPrice = 7;
+          allowedMaxContractPrice = 9;
         } else {
-          allowedMaxContractPrice = 7.5;
+          allowedMaxContractPrice = 10;
         }
 
         if(midOptionContractPrice > allowedMaxContractPrice)

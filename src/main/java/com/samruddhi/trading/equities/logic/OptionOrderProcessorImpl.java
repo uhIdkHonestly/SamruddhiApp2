@@ -43,6 +43,8 @@ import java.nio.charset.StandardCharsets;
  */
 public class OptionOrderProcessorImpl implements OptionOrderProcessor {
     private static final Logger logger = LoggerFactory.getLogger(OptionOrderProcessorImpl.class);
+
+    private static final String  BUY_ORDER = "BUY";
     private static final String CALL_BUY_ORDER = "BUY";
     private static final String CALL_SELL_ORDER = "SELL";
 
@@ -97,8 +99,10 @@ public class OptionOrderProcessorImpl implements OptionOrderProcessor {
         OptionData optionData = streamingOptionQuoteService.getOptionQuote(nextStrikePrice.getFullOptionTicker());
 
         // Check if below allowed max for Option contract
-        if (!ContractMaxPrice.validateMaxContractPriceByTicker(ticker, optionData.getMid(), price))
-            return OrderFillStatus.ORDER_FILL_STATUS_ABORTED;
+        if(buyOrSellAction == BUY_ORDER) {
+            if (!ContractMaxPrice.validateMaxContractPriceByTicker(ticker, optionData.getMid(), price))
+                return OrderFillStatus.ORDER_FILL_STATUS_ABORTED;
+        }
 
         double callLimitPrice = getCallOrderPlacementPrice(optionData);
 
@@ -136,8 +140,10 @@ public class OptionOrderProcessorImpl implements OptionOrderProcessor {
         OptionData optionData = streamingOptionQuoteService.getOptionQuote(nextStrikePrice.getFullOptionTicker());
 
         // Check if below allowed max for Option contract
-        if (!ContractMaxPrice.validateMaxContractPriceByTicker(ticker, optionData.getMid(), price))
-            return OrderFillStatus.ORDER_FILL_STATUS_ABORTED;
+        if(buyOrSellAction == BUY_ORDER) {
+            if (!ContractMaxPrice.validateMaxContractPriceByTicker(ticker, optionData.getMid(), price))
+                return OrderFillStatus.ORDER_FILL_STATUS_ABORTED;
+        }
 
         double putLimitPrice = getPutOrderPlacementPrice(optionData);
 
