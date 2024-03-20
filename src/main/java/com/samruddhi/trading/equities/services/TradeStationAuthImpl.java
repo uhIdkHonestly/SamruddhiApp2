@@ -135,10 +135,10 @@ public class TradeStationAuthImpl implements Authenticator {
 
         String refreshToken = cachedAccessToken.get(REFRESH_TOKEN_KEY);
         logger.info("refreshToken: " + refreshToken);
-        // TO DO REMOVE ME AFTEr TEST
-        if(refreshToken == null) {
+        // TO DO REMOVE ME AFTER TEST
+        /*if(refreshToken == null) {
             refreshToken = "TlIEjBTksx45kRkGz5Swb6_cpOpNIZAR0WSDyebdvH3d-";
-        }
+        }*/
         // TO DO REMOVE END Block
         String credentials = CLIENT_ID + ":" + CLIENT_SECRET;
         String encodedCredentials = Base64.getEncoder().encodeToString(credentials.getBytes(StandardCharsets.UTF_8));

@@ -17,6 +17,8 @@ public class TradingApp implements Job {
 
     private static final Logger logger = LoggerFactory.getLogger(TradingApp.class);
 
+    public static boolean shutdownNow = false;
+
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
         try {
@@ -24,9 +26,32 @@ public class TradingApp implements Job {
             // Your job logic here
             getInstance().startEngine();
             logger.info("{} Started TradingApp successfully - ", this.getClass().getName());
+
         } catch (Exception e) {
             logger.error("JobExecutionException at startup", e.getMessage());
             throw new JobExecutionException(e);
+        } finally {
+            shutdownHook();
         }
+    }
+
+    private void shutdownHook() {
+
+        // Keep job alive until a condition is met (e.g., time-based)
+        while (!shutdownNow) {
+            try {
+                Thread.sleep(2 * 60000); // Sleep for 2 minute
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+    }
+
+    public static boolean isShutdownNow() {
+        return shutdownNow;
+    }
+
+    public static void setShutdownNow(boolean shutdownNow) {
+        TradingApp.shutdownNow = shutdownNow;
     }
 }

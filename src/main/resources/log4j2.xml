@@ -10,6 +10,12 @@
         <Logger name="com.samruddhi.trading.equities" level="info" additivity="false">
             <AppenderRef ref="LogToConsole"/>
         </Logger>
+        <Logger name="core" level="info" additivity="false">
+            <AppenderRef ref="LogToConsole"/>
+        </Logger>
+        <Logger name="common" level="info" additivity="false">
+            <AppenderRef ref="LogToConsole"/>
+        </Logger>
         <Root level="error">
             <AppenderRef ref="LogToConsole"/>
         </Root>
