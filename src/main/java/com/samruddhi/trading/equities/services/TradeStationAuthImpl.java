@@ -58,7 +58,7 @@ public class TradeStationAuthImpl implements Authenticator {
     private static final String REFRESH_TOKEN_KEY = "refresh_token";
     private final String CLIENT_ID;
     private final String CLIENT_SECRET;
-    private static final String TOKEN_ENDPOINT = "https://signin.tradestation.com/oauth/token";
+    private static final String  TOKEN_ENDPOINT = "https://signin.tradestation.com/oauth/token";
 
     private static final HashMap<String, String> cachedAccessToken = new HashMap<>();
     private static Authenticator instance;

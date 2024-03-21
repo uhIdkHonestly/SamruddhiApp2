@@ -48,7 +48,7 @@ public class SecurityConfigManager {
         try {
             return encrypter.decrypt(properties.getProperty(key), secretKey);
         } catch(Exception e) {
-            logger.error("Error retrieving requeted security key:" + key);
+            logger.error("Error retrieving requested security key:" + key);
         }
         return null;
 

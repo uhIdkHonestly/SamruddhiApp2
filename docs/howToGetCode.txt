@@ -8,9 +8,7 @@ https://signin.tradestation.com/authorize?response_type=code&client_id=COKKzfMyH
 Simulated trading acct is: SIM2688797M
 URL https://sim-api.tradestation.com/v3
 
-
 API doc - https://api.tradestation.com/docs/fundamentals/sim-vs-live
-
 
 Workflow
 

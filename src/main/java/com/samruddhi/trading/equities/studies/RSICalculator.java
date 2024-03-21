@@ -14,7 +14,7 @@ public class RSICalculator {
         double averageGain = 0.0;
         double averageLoss = 0.0;
 
-        for (int i = 1; i <= period; i++) {
+        for (int i = 1; i <= bars.size(); i++) {
             double change = bars.get(i).getClose() - bars.get(i - 1).getClose();
             if (change > 0) {
                 averageGain += change;

@@ -106,6 +106,7 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
 
                     // get  daily stock data for past 50 days
                     List<Bar> pastMinuteBars = marketDataService.getStockDataBars(ticker, "Minute", 1, 50);
+                    logger.info("Ticker {} Size of pastMinuteBars {}", ticker, pastMinuteBars.size());
 
                     switch (currentStatus) {
                         case NO_STATUS, UPTREND, DOWNTREND -> checkAndPlaceOptionBuyOrder(minuteBars, pastMinuteBars);
@@ -120,6 +121,7 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
                     Thread.currentThread().interrupt(); // Preserve interrupt status
                     currentExceptionCount++;
                 } catch (Exception e) {
+                    e.printStackTrace();
                     logger.info("Error during task execution: Perhaps we can see if things improve next minute" + e.getMessage());
                     currentExceptionCount++;
                     // Optional: Decide if you want to interrupt the thread and stop the task
@@ -134,19 +136,19 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
         return null;
     }
 
-    private void checkAndPlaceOptionBuyOrder(List<Bar> minuteBars, List<Bar> dailyBars) throws Exception {
+    private void checkAndPlaceOptionBuyOrder(List<Bar> minuteBars, List<Bar> allMinuteBars) throws Exception {
 
-        double ema5 = EMACalculator.calculateEMAs(dailyBars, 5);
-        double ema13 = EMACalculator.calculateEMAs(dailyBars, 13);
-        double ema50 = EMACalculator.calculateEMAs(dailyBars, 50);
+        double ema5 = EMACalculator.calculateEMAs(allMinuteBars, 5);
+        double ema13 = EMACalculator.calculateEMAs(allMinuteBars, 13);
+        double ema50 = EMACalculator.calculateEMAs(allMinuteBars, 50);
 
         // calculate and validate MACD
-        List<Bar> bars26Days = dailyBars.subList(24, dailyBars.size());
+        List<Bar> bars26Days = allMinuteBars.subList(24, allMinuteBars.size());
         double[] macd = MACDCalculator.computeMACD(bars26Days, 12, 26, 9);
         boolean isMacdBullish = MACDCalculator.isMACDTrendBullish(macd[0], macd[1]);
 
         // Validate RSI and VWAP,
-        double rsi = RSICalculator.calculateRSI(dailyBars.subList(36, dailyBars.size()), 14);
+        double rsi = RSICalculator.calculateRSI(allMinuteBars.subList(36, allMinuteBars.size()), 14);
         boolean isRsiBullish = rsi > 40; // Fix me
 
         OrderFillStatus orderFillStatus = null;
@@ -156,7 +158,7 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
 
             // Initiate an Option buy order if all criteria met
             if (!isCallBuyBasedOnPreviousEmas() && isMacdBullish && isRsiBullish) {
-                orderFillStatus = initiateCallOrPutBuying(ticker, dailyBars.get(dailyBars.size() - 1).getClose(), 'C');
+                orderFillStatus = initiateCallOrPutBuying(ticker, allMinuteBars.get(allMinuteBars.size() - 1).getClose(), 'C');
                 saveBuyStatus(orderFillStatus, true);
             }
         } else if (ema13 < ema50 && ema5 < ema13 && previousEmas != null) {
@@ -165,7 +167,7 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
 
             if (!isPutBuyBasedOnPreviousEmas() && !isMacdBullish && !isRsiBullish) {
                 //initiatePutBuying(ticker, price);
-                orderFillStatus = initiateCallOrPutBuying(ticker, dailyBars.get(dailyBars.size() - 1).getClose(), 'P');
+                orderFillStatus = initiateCallOrPutBuying(ticker, allMinuteBars.get(allMinuteBars.size() - 1).getClose(), 'P');
                 saveBuyStatus(orderFillStatus, false);
             }
         }
