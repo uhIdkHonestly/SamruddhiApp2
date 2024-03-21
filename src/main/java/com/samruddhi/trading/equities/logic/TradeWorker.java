@@ -1,8 +1,5 @@
 package com.samruddhi.trading.equities.logic;
 
-//import static com.samruddhi.trading.equities.services.MarketDataServiceImpl.TIME_UNIT_MINUTE;
-//import static com.samruddhi.trading.equities.services.MarketDataServiceImpl.TIME_UNIT_DAILY;
-
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -27,7 +24,6 @@ import com.samruddhi.trading.equities.studies.RSICalculator;
 
 import static com.samruddhi.trading.equities.domain.getordersbyid.OrderFillStatus.ORDER_FILL_STATUS_FAILED;
 import static com.samruddhi.trading.equities.logic.OptionOrderFillStatus.*;
-
 
 public class TradeWorker implements Callable<TradeWorkerStatus> {
 
@@ -60,7 +56,8 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
     private PreviousEmas previousTwoMinuteAgoEmas;
 
     /**
-     * What's my curent status ie UPTREND, DOWNTREND, CALL_HELD, PUT_HELD, NO_STATUS, storeed for chgecking worker status easily
+     * What's my curent status ie UPTREND, DOWNTREND, CALL_HELD, PUT_HELD, NO_STATUS,
+     * stored for checking worker status easily
      */
     private CurrentStatus currentStatus;
 
@@ -220,8 +217,10 @@ public class TradeWorker implements Callable<TradeWorkerStatus> {
 
             recentBuyFillStatus = orderFillStatus;
         } else if (orderFillStatus.getStatus() != ORDER_STATUS_OPEN) {
-            // TO DO -  optionOrderProcessor.cancelOrder(orderFillStatus.orderId);
             optionOrderProcessor.cancelOrder(orderFillStatus.getOrderId());
+            currentStatus = CurrentStatus.NO_STATUS;
+        } else if (orderFillStatus.getStatus() != ORDER_STATUS_FAILED) {
+            logger.error("We have a failed buy Order {}, resetting CurrentStatus to NO_STATUS");
             currentStatus = CurrentStatus.NO_STATUS;
         }
     }
