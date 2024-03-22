@@ -33,23 +33,18 @@ public class EMACalculator {
             throw new IllegalArgumentException("The number of bars must be at least equal to the period for EMA calculation.");
         }
 
-        // Calculate initial SMA for the first 'period' bars
-        double sum = 0;
-        for (int i = 0; i < period; i++) {
-            sum += bars.get(i).getClose();
+        if (bars.isEmpty() || bars.size() < period) {
+            throw new IllegalArgumentException("Not enough data to calculate EMA.");
         }
-        double sma = sum / period;
 
-        // EMA formula: EMA = (Close - EMA(previous)) * multiplier + EMA(previous)
         double multiplier = 2.0 / (period + 1);
-        double ema = sma;
+        double ema = bars.get(0).getClose(); // Starting with the first bar's close price as initial EMA
 
-        // Start calculation from period, since EMA starts with SMA as its first value
-        for (int i = period; i < bars.size(); i++) {
-            double close = bars.get(i).getClose();
-            ema = (close - ema) * multiplier + ema;
+        for (int i = 1; i < bars.size(); i++) {
+            double closePrice = bars.get(i).getClose();
+            ema = (closePrice - ema) * multiplier + ema;
         }
-        logger.info("EMA for {} period is {}", period, ema);
+
         return ema;
     }
 

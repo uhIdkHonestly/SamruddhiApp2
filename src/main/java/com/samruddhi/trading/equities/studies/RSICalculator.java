@@ -11,34 +11,26 @@ public class RSICalculator {
             throw new IllegalArgumentException("Not enough bars to calculate RSI.");
         }
 
-        double averageGain = 0.0;
-        double averageLoss = 0.0;
-
-        for (int i = 1; i <= bars.size(); i++) {
+        double gain = 0, loss = 0;
+        for (int i = 1; i < bars.size(); i++) {
             double change = bars.get(i).getClose() - bars.get(i - 1).getClose();
             if (change > 0) {
-                averageGain += change;
+                gain += change;
             } else {
-                averageLoss += Math.abs(change);
+                loss -= change;
             }
         }
 
-        averageGain /= period;
-        averageLoss /= period;
+        double avgGain = gain / period;
+        double avgLoss = loss / period;
 
-        for (int i = period + 1; i < bars.size(); i++) {
-            double change = bars.get(i).getClose() - bars.get(i - 1).getClose();
-            if (change > 0) {
-                averageGain = (averageGain * (period - 1) + change) / period;
-                averageLoss = (averageLoss * (period - 1)) / period;
-            } else {
-                averageGain = (averageGain * (period - 1)) / period;
-                averageLoss = (averageLoss * (period - 1) + Math.abs(change)) / period;
-            }
+        // Avoid division by zero; if avgLoss is 0, RSI is considered to be 100 as per convention.
+        if (avgLoss == 0) {
+            return 100;
         }
 
-        double relativeStrength = averageGain / averageLoss;
-        return 100.0 - (100.0 / (1.0 + relativeStrength));
+        double rs = avgGain / avgLoss;
+        return 100 - (100 / (1 + rs));
     }
 
     public static void main(String[] args) {
