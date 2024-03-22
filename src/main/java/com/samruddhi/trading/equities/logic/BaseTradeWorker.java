@@ -7,9 +7,16 @@ import java.util.concurrent.Callable;
 
 public class BaseTradeWorker implements Callable<TradeWorkerStatus> {
 
+    final int ALLOWED_MAX_LOSS_PER_DAY =  -500;
+
     final InMemoryPnlTracker inMemoryPnlTracker = InMemoryPnlTracker.getInstance();
     @Override
     public TradeWorkerStatus call() throws Exception {
         return null;
+    }
+
+    boolean maxPnlLossExceededPerDay() {
+        return inMemoryPnlTracker.getTotalPNL() < ALLOWED_MAX_LOSS_PER_DAY;
+
     }
 }

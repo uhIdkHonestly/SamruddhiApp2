@@ -15,6 +15,7 @@ import com.samruddhi.trading.equities.studies.RSICalculator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.swing.*;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -22,8 +23,10 @@ import static com.samruddhi.trading.equities.domain.getordersbyid.OrderFillStatu
 import static com.samruddhi.trading.equities.logic.OptionOrderFillStatus.*;
 import static com.samruddhi.trading.equities.logic.OptionOrderFillStatus.ORDER_STATUS_OPEN;
 
-/** For a given Ticker this would trade using plain stocks */
-public class StockTradeWorker extends  BaseTradeWorker {
+/**
+ * For a given Ticker this would trade using plain stocks
+ */
+public class StockTradeWorker extends BaseTradeWorker {
 
     private static final Logger logger = LoggerFactory.getLogger(StockTradeWorker.class);
     private static int PER_INTERVAL_SLEEP_TIME = 100; // In milli seconds
@@ -102,9 +105,21 @@ public class StockTradeWorker extends  BaseTradeWorker {
                     logger.info("Ticker {} Size of pastMinuteBars {}", ticker, pastMinuteBars.size());
 
                     switch (currentStatus) {
-                        case NO_STATUS, UPTREND -> checkAndPlaceStockBuyOrder(minuteBars, pastMinuteBars);
-                        case STOCKS_HELD -> checkAndPlaceStockSellPoint(minuteBars, pastMinuteBars);
+                        case NO_STATUS, UPTREND -> {
+                            if (!maxPnlLossExceededPerDay())
+                                checkAndPlaceStockBuyOrder(minuteBars, pastMinuteBars);
+                        }
+                        case STOCKS_HELD -> {
+                            checkAndPlaceStockSellPoint(minuteBars, pastMinuteBars);
+                            if (maxPnlLossExceededPerDay()) {
+                                isTerminated = true;
+                            }
+                        }
                     }
+
+                    // terminating both while loops as our Daily MAX PNL loss exceeded
+                    if (isTerminated)
+                        break;
 
                     // Sleep for 1/2 minute, some import issue in J 21 with TimeUnit.MILLISECONDS.sleep
                     Thread.sleep(PER_INTERVAL_SLEEP_TIME);
@@ -127,6 +142,7 @@ public class StockTradeWorker extends  BaseTradeWorker {
         }
         return null;
     }
+
 
     private void checkAndPlaceStockBuyOrder(List<Bar> minuteBars, List<Bar> allMinuteBars) throws Exception {
 
@@ -217,7 +233,7 @@ public class StockTradeWorker extends  BaseTradeWorker {
     private OrderFillStatus initiateStockBuying(String ticker, double price) throws Exception {
         OrderFillStatus orderFillStatus = ORDER_FILL_STATUS_FAILED;
         try {
-            orderFillStatus = stockOrderProcessor.createStockBuyOrder( ticker,price);
+            orderFillStatus = stockOrderProcessor.createStockBuyOrder(ticker, price);
 
         } catch (Exception e) {
             logger.error("Error in initiateStockBuying {}", e.getMessage());
@@ -229,7 +245,7 @@ public class StockTradeWorker extends  BaseTradeWorker {
     private OrderFillStatus initiateStockSelling(String ticker, double price) throws Exception {
         OrderFillStatus orderFillStatus = ORDER_FILL_STATUS_FAILED;
         try {
-            orderFillStatus = stockOrderProcessor.createStockSellOrder( ticker,price);
+            orderFillStatus = stockOrderProcessor.createStockSellOrder(ticker, price);
         } catch (Exception e) {
             logger.error("Error in initiateStockSelling {}", e.getMessage());
             throw e;
@@ -271,7 +287,6 @@ public class StockTradeWorker extends  BaseTradeWorker {
     }
 
 
-
     //public FinishedTrade(String ticker, double buyPrice, double sellPrice, LocalTime entry, LocalTime exit, long quantity, double profitOrLoss) {
     private void storeFinishedTrade(OrderFillStatus sellFillStatus) {
         double profitOrLoss = calculateProfit(sellFillStatus); // calculate profit or loss
@@ -280,7 +295,7 @@ public class StockTradeWorker extends  BaseTradeWorker {
         tradeWorkerStatus.addFinishedTrade(finishedTrade);
 
         concurrentCompletedTradeQueue.addToQueue(finishedTrade.toString());
-        inMemoryPnlTracker.updateTotalPNL((long)profitOrLoss);
+        inMemoryPnlTracker.updateTotalPNL((long) profitOrLoss);
     }
 
     private double calculateProfit(OrderFillStatus sellFillStatus) {

@@ -26,7 +26,9 @@ import static com.samruddhi.trading.equities.domain.getordersbyid.OrderFillStatu
 import static com.samruddhi.trading.equities.logic.OptionOrderFillStatus.*;
 
 
-/** For a given Ticker this would trade using Options Buy and Sell Calls / Puts */
+/**
+ * For a given Ticker this would trade using Options Buy and Sell Calls / Puts
+ */
 public class OptionsTradeWorker extends BaseTradeWorker {
 
     private static int PER_INTERVAL_SLEEP_TIME = 100; // In milli seconds
@@ -111,10 +113,27 @@ public class OptionsTradeWorker extends BaseTradeWorker {
                     logger.info("Ticker {} Size of pastMinuteBars {}", ticker, pastMinuteBars.size());
 
                     switch (currentStatus) {
-                        case NO_STATUS, UPTREND, DOWNTREND -> checkAndPlaceOptionBuyOrder(minuteBars, pastMinuteBars);
-                        case CALL_HELD -> checkAndPlaceCallSellPoint(minuteBars, pastMinuteBars);
-                        case PUT_HELD -> checkAndPlacePutsSellPoint(minuteBars, pastMinuteBars);
+                        case NO_STATUS, UPTREND, DOWNTREND -> {
+                            if (!maxPnlLossExceededPerDay())
+                                checkAndPlaceOptionBuyOrder(minuteBars, pastMinuteBars);
+                        }
+                        case CALL_HELD -> {
+                            checkAndPlaceCallSellPoint(minuteBars, pastMinuteBars);
+                            if (maxPnlLossExceededPerDay()) {
+                                isTerminated = true;
+                            }
+                        }
+                        case PUT_HELD -> {
+                            checkAndPlacePutsSellPoint(minuteBars, pastMinuteBars);
+                            if (maxPnlLossExceededPerDay()) {
+                                isTerminated = true;
+                            }
+                        }
                     }
+
+                    // terminating both while loops as our Daily MAX PNL loss exceeded
+                    if (isTerminated)
+                        break;
 
                     // Sleep for 1/2 minute, some import issue in J 21 with TimeUnit.MILLISECONDS.sleep
                     Thread.sleep(PER_INTERVAL_SLEEP_TIME);
@@ -329,7 +348,7 @@ public class OptionsTradeWorker extends BaseTradeWorker {
         tradeWorkerStatus.addFinishedTrade(finishedTrade);
 
         concurrentCompletedTradeQueue.addToQueue(finishedTrade.toString());
-        inMemoryPnlTracker.updateTotalPNL((long)profitOrLoss);
+        inMemoryPnlTracker.updateTotalPNL((long) profitOrLoss);
     }
 
     private double calculateProfit(OrderFillStatus sellFillStatus) {
