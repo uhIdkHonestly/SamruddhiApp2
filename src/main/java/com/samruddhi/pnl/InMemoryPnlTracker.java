@@ -1,9 +1,11 @@
 package com.samruddhi.pnl;
 
 import com.samruddhi.trading.equities.logic.StockTradeWorker;
+import core.TradingEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class InMemoryPnlTracker {
@@ -12,6 +14,25 @@ public class InMemoryPnlTracker {
 
     // AtomicLong to ensure thread-safe updates to the total PNL
     private final AtomicLong totalPNL = new AtomicLong(0);
+
+    private static InMemoryPnlTracker instance = null;
+
+    // Private constructor to prevent instantiation from other classes
+    private InMemoryPnlTracker() {
+    }
+
+    // Public static method to get the instance of the Singleton
+    public static InMemoryPnlTracker getInstance() {
+        if (instance == null) {
+            synchronized (InMemoryPnlTracker.class) {
+                if (instance == null) {
+                    instance = new InMemoryPnlTracker();
+                }
+            }
+        }
+        return instance;
+    }
+
 
     /**
      * Updates the total PNL with the PNL of a completed trade.
@@ -38,7 +59,7 @@ public class InMemoryPnlTracker {
         InMemoryPnlTracker tracker = new InMemoryPnlTracker();
 
         // Simulate updates to PNL from different trades/threads
-        tracker.updateTotalPNL(100);
+        tracker.updateTotalPNL(-300);
         tracker.updateTotalPNL(-50);
         tracker.updateTotalPNL(200);
 

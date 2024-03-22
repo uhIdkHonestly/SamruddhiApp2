@@ -48,4 +48,60 @@ public class FinishedTrade {
     public int hashCode() {
         return Objects.hash(ticker, buyPrice, sellPrice, entry, exit, quantity, profitOrLoss);
     }
+
+    public String getTicker() {
+        return ticker;
+    }
+
+    public void setTicker(String ticker) {
+        this.ticker = ticker;
+    }
+
+    public double getBuyPrice() {
+        return buyPrice;
+    }
+
+    public void setBuyPrice(double buyPrice) {
+        this.buyPrice = buyPrice;
+    }
+
+    public double getSellPrice() {
+        return sellPrice;
+    }
+
+    public void setSellPrice(double sellPrice) {
+        this.sellPrice = sellPrice;
+    }
+
+    public LocalTime getEntry() {
+        return entry;
+    }
+
+    public void setEntry(LocalTime entry) {
+        this.entry = entry;
+    }
+
+    public LocalTime getExit() {
+        return exit;
+    }
+
+    public void setExit(LocalTime exit) {
+        this.exit = exit;
+    }
+
+    public long getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(long quantity) {
+        this.quantity = quantity;
+    }
+
+    public double getProfitOrLoss() {
+        return profitOrLoss;
+    }
+
+    public void setProfitOrLoss(double profitOrLoss) {
+        this.profitOrLoss = profitOrLoss;
+    }
 }

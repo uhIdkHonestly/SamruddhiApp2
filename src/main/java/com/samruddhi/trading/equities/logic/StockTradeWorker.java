@@ -274,12 +274,13 @@ public class StockTradeWorker extends  BaseTradeWorker {
 
     //public FinishedTrade(String ticker, double buyPrice, double sellPrice, LocalTime entry, LocalTime exit, long quantity, double profitOrLoss) {
     private void storeFinishedTrade(OrderFillStatus sellFillStatus) {
+        double profitOrLoss = calculateProfit(sellFillStatus); // calculate profit or loss
         FinishedTrade finishedTrade = new FinishedTrade(sellFillStatus.getTicker(), recentBuyFillStatus.getFillPrice(), sellFillStatus.getFillPrice(),
-                recentBuyFillStatus.getExecutionTime(), sellFillStatus.getExecutionTime(), sellFillStatus.getFillQuantity(), calculateProfit(sellFillStatus)); // calculate profit
+                recentBuyFillStatus.getExecutionTime(), sellFillStatus.getExecutionTime(), sellFillStatus.getFillQuantity(), profitOrLoss);
         tradeWorkerStatus.addFinishedTrade(finishedTrade);
 
         concurrentCompletedTradeQueue.addToQueue(finishedTrade.toString());
-
+        inMemoryPnlTracker.updateTotalPNL((long)profitOrLoss);
     }
 
     private double calculateProfit(OrderFillStatus sellFillStatus) {
