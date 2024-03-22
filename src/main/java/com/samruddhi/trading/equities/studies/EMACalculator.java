@@ -22,13 +22,18 @@ public class EMACalculator {
 
     private static final Logger logger = LoggerFactory.getLogger(EMACalculator.class);
 
-    /** The bars will have upto 50 days, use parameter duration to pick 5, 9, 50 days
+    /**
+     * The bars will have upto 50 days, use parameter duration to pick 5, 9, 50 days
      *
      * @param bars
      * @param period
      * @return
      */
-    public static double calculateEMAs(List<Bar> bars, int period) {
+    public static double calculateEMAs(List<Bar> allbars, int period) {
+        // collect only the periods we need
+        List<Bar> bars = allbars.subList(allbars.size() - period, allbars.size());
+        logger.info("Bars size: " + bars.size());
+
         if (bars.size() < period) {
             throw new IllegalArgumentException("The number of bars must be at least equal to the period for EMA calculation.");
         }
@@ -57,5 +62,8 @@ public class EMACalculator {
         double ema5 = EMACalculator.calculateEMAs(bars, 5);
         double ema13 = EMACalculator.calculateEMAs(bars, 13);
         double ema50 = EMACalculator.calculateEMAs(bars, 50);
+        logger.info("ema5 -> " + ema5);
+        logger.info("ema13 ->" + ema13);
+        logger.info("ema50 ->" + ema50);
     }
 }
