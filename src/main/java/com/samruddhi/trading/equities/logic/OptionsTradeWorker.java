@@ -27,7 +27,7 @@ import static com.samruddhi.trading.equities.logic.OptionOrderFillStatus.*;
 
 
 /** For a given Ticker this would trade using Options Buy and Sell Calls / Puts */
-public class OptionsTradeWorker implements Callable<TradeWorkerStatus> {
+public class OptionsTradeWorker extends BaseTradeWorker {
 
     private static int PER_INTERVAL_SLEEP_TIME = 100; // In milli seconds
     // We allow upto 3 exceptions per Ticker in the TradeWorker

@@ -23,8 +23,9 @@ import static com.samruddhi.trading.equities.logic.OptionOrderFillStatus.*;
 import static com.samruddhi.trading.equities.logic.OptionOrderFillStatus.ORDER_STATUS_OPEN;
 
 /** For a given Ticker this would trade using plain stocks */
-public class StockTradeWorker implements Callable<TradeWorkerStatus> {
+public class StockTradeWorker extends  BaseTradeWorker {
 
+    private static final Logger logger = LoggerFactory.getLogger(StockTradeWorker.class);
     private static int PER_INTERVAL_SLEEP_TIME = 100; // In milli seconds
     // We allow upto 3 exceptions per Ticker in the TradeWorker
     private final int MAX_ALLOWED_EXCEPTION_COUNT = 3;
@@ -32,9 +33,8 @@ public class StockTradeWorker implements Callable<TradeWorkerStatus> {
 
     private enum CurrentStatus {
         UPTREND, DOWNTREND, CALL_HELD, PUT_HELD, STOCKS_HELD, NO_STATUS;
-    }
 
-    private static final Logger logger = LoggerFactory.getLogger(OptionsTradeWorker.class);
+    }
 
     private boolean isTerminated = false;
     private MarketDataService marketDataService;
@@ -76,7 +76,6 @@ public class StockTradeWorker implements Callable<TradeWorkerStatus> {
     public StockTradeWorker(MarketDataService marketDataService, String ticker) {
         this.marketDataService = marketDataService;
         this.currentStatus = CurrentStatus.NO_STATUS;
-
         this.tradeWorkerStatus = new TradeWorkerStatus("");
         this.previousEmas = new PreviousEmas(0, 0, 0);
         this.previousTwoMinuteAgoEmas = new PreviousEmas(0, 0, 0);
@@ -96,7 +95,6 @@ public class StockTradeWorker implements Callable<TradeWorkerStatus> {
             while (!Thread.currentThread().isInterrupted()) {
                 try {
                     // get  minute stock data , tick - 2 (just last 2) using the stock ticker
-
                     List<Bar> minuteBars = marketDataService.getStockDataBars(ticker, "Minute", 1, 2);
 
                     // get  daily stock data for past 50 days
@@ -104,7 +102,7 @@ public class StockTradeWorker implements Callable<TradeWorkerStatus> {
                     logger.info("Ticker {} Size of pastMinuteBars {}", ticker, pastMinuteBars.size());
 
                     switch (currentStatus) {
-                        case NO_STATUS, UPTREND, DOWNTREND -> checkAndPlaceStockBuyOrder(minuteBars, pastMinuteBars);
+                        case NO_STATUS, UPTREND -> checkAndPlaceStockBuyOrder(minuteBars, pastMinuteBars);
                         case STOCKS_HELD -> checkAndPlaceStockSellPoint(minuteBars, pastMinuteBars);
                     }
 

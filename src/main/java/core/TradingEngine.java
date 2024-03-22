@@ -2,7 +2,9 @@ package core;
 
 import com.samruddhi.trading.equities.domain.Ticker;
 import com.samruddhi.trading.equities.domain.TradeWorkerStatus;
+import com.samruddhi.trading.equities.logic.BaseTradeWorker;
 import com.samruddhi.trading.equities.logic.OptionsTradeWorker;
+import com.samruddhi.trading.equities.logic.StockTradeWorker;
 import com.samruddhi.trading.equities.quartz.TokenRefresherDaemon;
 import com.samruddhi.trading.equities.services.MarketDataServiceImpl;
 import org.slf4j.Logger;
@@ -54,13 +56,24 @@ public class TradingEngine {
             Set<Ticker> tickers = tickertMaster.getTickersForTheDay();
 
             executor = Executors.newFixedThreadPool(Math.min(tickers.size(), MAX_THREADS));
-            List<OptionsTradeWorker> workers = tickers.stream().map(ticker -> new OptionsTradeWorker(new MarketDataServiceImpl(), ticker.getName())).collect(Collectors.toList());
-            tradeWorkerFutures = executor.invokeAll(workers);
+            List<BaseTradeWorker> workers = tickers.stream().map(ticker -> {
+                        if (ticker.isTradeUsingOnlyStocks())
+                            return new StockTradeWorker(new MarketDataServiceImpl(), ticker.getName());
+                        else
+                            return new OptionsTradeWorker(new MarketDataServiceImpl(), ticker.getName());
+                    }
+            ).collect(Collectors.toList());
 
-        } catch (InterruptedException e) {
-            logger.error("Error starting TradeEngine {}", e.getMessage());
-            logger.error(e.getStackTrace().toString());
-        }
-        return tradeWorkerFutures;
+
+        tradeWorkerFutures = executor.invokeAll(workers);
+
+    } catch(
+    InterruptedException e)
+
+    {
+        logger.error("Error starting TradeEngine {}", e.getMessage());
+        logger.error(e.getStackTrace().toString());
     }
+        return tradeWorkerFutures;
+}
 }

@@ -14,7 +14,7 @@ import static com.samruddhi.trading.equities.domain.OptionType.Weekly;
  */
 public class TickertMaster {
 
-    private final Set<Ticker> coreTickerSet = Set.of(new Ticker("AMZN", Weekly),  new Ticker("AMD", Weekly));
+    private final Set<Ticker> coreTickerSet = Set.of(new Ticker("AMZN", Weekly, true),  new Ticker("GOOG", Weekly, false));
 
     public Set<Ticker> getTickersForTheDay() {
         return coreTickerSet;
