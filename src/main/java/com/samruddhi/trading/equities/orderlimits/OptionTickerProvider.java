@@ -105,5 +105,4 @@ public class OptionTickerProvider {
         }
         return closestStrikePrice;
     }
-
 }

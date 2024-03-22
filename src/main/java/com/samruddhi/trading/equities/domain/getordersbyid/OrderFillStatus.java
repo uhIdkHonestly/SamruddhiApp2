@@ -14,7 +14,7 @@ public class OrderFillStatus {
     OptionOrderFillStatus status;
     double fillPrice;
     int fillQuantity;
-    /** This wil be actual option ticker */
+    /** This wil be actual option ticker or stock ticker(in case of stock based Trade0 */
     String optionTicker;
 
     LocalTime executionTime = LocalTime.now();

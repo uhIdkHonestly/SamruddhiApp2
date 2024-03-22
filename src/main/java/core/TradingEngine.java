@@ -2,7 +2,7 @@ package core;
 
 import com.samruddhi.trading.equities.domain.Ticker;
 import com.samruddhi.trading.equities.domain.TradeWorkerStatus;
-import com.samruddhi.trading.equities.logic.TradeWorker;
+import com.samruddhi.trading.equities.logic.OptionsTradeWorker;
 import com.samruddhi.trading.equities.quartz.TokenRefresherDaemon;
 import com.samruddhi.trading.equities.services.MarketDataServiceImpl;
 import org.slf4j.Logger;
@@ -54,7 +54,7 @@ public class TradingEngine {
             Set<Ticker> tickers = tickertMaster.getTickersForTheDay();
 
             executor = Executors.newFixedThreadPool(Math.min(tickers.size(), MAX_THREADS));
-            List<TradeWorker> workers = tickers.stream().map(ticker -> new TradeWorker(new MarketDataServiceImpl(), ticker.getName())).collect(Collectors.toList());
+            List<OptionsTradeWorker> workers = tickers.stream().map(ticker -> new OptionsTradeWorker(new MarketDataServiceImpl(), ticker.getName())).collect(Collectors.toList());
             tradeWorkerFutures = executor.invokeAll(workers);
 
         } catch (InterruptedException e) {

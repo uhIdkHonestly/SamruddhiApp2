@@ -2,16 +2,12 @@ package com.samruddhi.trading.equities.logic;
 
 import com.samruddhi.trading.equities.config.ConfigManager;
 import com.samruddhi.trading.equities.domain.Bar;
-import com.samruddhi.trading.equities.domain.NextStrikePrice;
 import com.samruddhi.trading.equities.domain.getordersbyid.OrderFillStatus;
-import com.samruddhi.trading.equities.orderlimits.OptionTickerProvider;
 import com.samruddhi.trading.equities.studies.EMACalculator;
 import com.samruddhi.trading.equities.studies.MACDCalculator;
 import com.samruddhi.trading.equities.studies.RSICalculator;
 
 import java.util.List;
-
-import static com.samruddhi.trading.equities.logic.OptionOrderFillStatus.ORDER_STATUS_OPEN;
 
 public class CallSellPointHelper {
 
@@ -21,7 +17,7 @@ public class CallSellPointHelper {
         this.ticker = ticker;
     }
 
-    public boolean determineIfCallSellCriteriaMet(OrderFillStatus recentBuyFillStatus, List<Bar> minuteBars, List<Bar> dailyBars) throws Exception {
+    public boolean determineIfStockOrCallSellCriteriaMet(OrderFillStatus recentBuyFillStatus, List<Bar> minuteBars, List<Bar> dailyBars) throws Exception {
         double ema5 = EMACalculator.calculateEMAs(dailyBars, 5);
         double ema13 = EMACalculator.calculateEMAs(dailyBars, 13);
         double ema50 = EMACalculator.calculateEMAs(dailyBars, 50);
