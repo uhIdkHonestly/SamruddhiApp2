@@ -1,5 +1,8 @@
 package com.samruddhi.trading.equities.logic;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
 public class NumberFormatHelper {
     /** formats given number to 5 integral and 3 decimal format as needed by TICKER
      *
@@ -20,6 +23,11 @@ public class NumberFormatHelper {
         // Concatenate the formatted parts to get the final 8-digit string
         return formattedIntegerPart + formattedFractionalPart;
     }
+    public static double  formatDecimals(double value, int numberOfDecimals) {
+            BigDecimal bd = new BigDecimal(value).setScale(numberOfDecimals, RoundingMode.HALF_UP);
+            return bd.doubleValue();
+    }
+
 
     public static void main(String[] args) {
         double number = 442.13;

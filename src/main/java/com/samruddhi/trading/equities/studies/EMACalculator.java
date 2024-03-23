@@ -3,6 +3,7 @@ package com.samruddhi.trading.equities.studies;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.samruddhi.trading.equities.domain.Bar;
+import com.samruddhi.trading.equities.logic.NumberFormatHelper;
 import com.samruddhi.trading.equities.services.TradeStationAuthImpl;
 import common.JsonParser;
 import org.slf4j.Logger;
@@ -25,14 +26,14 @@ public class EMACalculator {
     /**
      * The bars will have upto 50 days, use parameter duration to pick 5, 9, 50 days
      *
-     * @param bars
+     * @param allbars
      * @param period
      * @return
      */
     public static double calculateEMAs(List<Bar> allbars, int period) {
         // collect only the periods we need
         List<Bar> bars = allbars.subList(allbars.size() - period, allbars.size());
-        logger.info("Bars size: " + bars.size());
+        logger.debug("Bars size: " + bars.size());
 
         if (bars.size() < period) {
             throw new IllegalArgumentException("The number of bars must be at least equal to the period for EMA calculation.");
@@ -50,7 +51,8 @@ public class EMACalculator {
             ema = (closePrice - ema) * multiplier + ema;
         }
 
-        return ema;
+
+        return NumberFormatHelper.formatDecimals(ema, 2);
     }
 
     public static void main(String[] args) {

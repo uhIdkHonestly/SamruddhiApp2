@@ -90,13 +90,7 @@ public class StockOrderProcessorImpl implements StockOrderProcessor {
     }
 
     private double getLimitOrderPlacementPrice(Bar bar) {
-        return formatToDecimals(bar.getClose(), 2);
-    }
-
-    private double formatToDecimals(double value, int numberOfDecimals) {
-        BigDecimal bd = new BigDecimal(value).setScale(numberOfDecimals, RoundingMode.HALF_UP);
-        double roundedValue = bd.doubleValue();
-        return roundedValue; // Eg Outputs: 123.46
+        return NumberFormatHelper.formatDecimals(bar.getClose(), 2);
     }
 
     public OrderFillStatus replaceStockSellOrder(String orderId, String ticker) throws Exception {
@@ -104,7 +98,7 @@ public class StockOrderProcessorImpl implements StockOrderProcessor {
         OrderFillStatus orderFillStatus = null;
         while (orderFillStatus.getStatus() == null || orderFillStatus.getStatus() == ORDER_STATUS_OPEN) {
             List<Bar> minuteBars = marketDataService.getStockDataBars(ticker, "Minute", 1, 1);
-            double callLimitPrice = formatToDecimals(minuteBars.get(0).getClose(), 2);
+            double callLimitPrice = NumberFormatHelper.formatDecimals(minuteBars.get(0).getClose(), 2);
             UpdateOrderResponse updateOrderResponse = orderService.updateOrder(orderId, callLimitPrice);
             orderFillStatus = orderFillStatusRetrievalService.checkOrderFillStatus(orderId);
             if (orderFillStatus == ORDER_FILL_STATUS_FAILED) {
