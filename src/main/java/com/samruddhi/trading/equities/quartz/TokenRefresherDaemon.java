@@ -23,7 +23,7 @@ public class TokenRefresherDaemon {
     }
 
     public void scheduleTokenRefresher() {
-        scheduler.scheduleAtFixedRate(authenticator::getRefreshToken, 0, refreshIntervalMins, TimeUnit.MINUTES);
+        scheduler.scheduleAtFixedRate(authenticator::getRefreshToken, 3, refreshIntervalMins, TimeUnit.MINUTES);
     }
 
     public void shutdown() {

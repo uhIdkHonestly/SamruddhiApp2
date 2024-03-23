@@ -31,7 +31,7 @@ public class MACDCalculator {
 
     public static boolean isMACDTrendBullish(double macd, double signalLine) {
         String bullish =  macd > signalLine ? "Bullish" : "Bearish";
-        logger.debug(bullish);
+        logger.info(bullish);
         return macd > signalLine;
     }
 

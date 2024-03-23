@@ -131,15 +131,15 @@ public class OptionsTradeWorker extends BaseTradeWorker {
                     if (isTerminated)
                         break;
 
-                    // Sleep for 1/2 minute, some import issue in J 21 with TimeUnit.MILLISECONDS.sleep
+                    // Sleep for around minute, some import issue in J 21 with TimeUnit.MILLISECONDS.sleep
                     Thread.sleep(PER_INTERVAL_SLEEP_TIME);
                 } catch (InterruptedException e) {
-                    logger.info("Task interrupted.");
+                    logger.error("Task interrupted.");
                     Thread.currentThread().interrupt(); // Preserve interrupt status
                     currentExceptionCount++;
                 } catch (Exception e) {
                     e.printStackTrace();
-                    logger.info("Error during task execution: Perhaps we can see if things improve next minute" + e.getMessage());
+                    logger.error("Error during task execution: Perhaps we can see if things improve next minute" + e.getMessage());
                     currentExceptionCount++;
                     // Optional: Decide if you want to interrupt the thread and stop the task
                 }
@@ -187,6 +187,8 @@ public class OptionsTradeWorker extends BaseTradeWorker {
                 orderFillStatus = initiateCallOrPutBuying(ticker, allMinuteBars.get(allMinuteBars.size() - 1).getClose(), 'P');
                 saveBuyStatus(orderFillStatus, false);
             }
+        } else {
+            logger.info("OptionsTradeWorker - Currently no uptrend detected {} {} {} ", ema5, ema13, ema50);
         }
         previousTwoMinuteAgoEmas = previousEmas;
         previousEmas = new PreviousEmas(ema5, ema13, ema50);

@@ -54,4 +54,10 @@ public class TradingApp implements Job {
     public static void setShutdownNow(boolean shutdownNow) {
         TradingApp.shutdownNow = shutdownNow;
     }
+
+    public static void main(String[] args) throws Exception{
+        TradingApp tradingApp = new TradingApp();
+        tradingApp.execute(null);
+        tradingApp.shutdownHook();
+    }
 }

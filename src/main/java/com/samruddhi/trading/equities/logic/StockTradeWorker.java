@@ -166,6 +166,8 @@ public class StockTradeWorker extends BaseTradeWorker {
                 orderFillStatus = initiateStockBuying(ticker, allMinuteBars.get(allMinuteBars.size() - 1).getClose());
                 saveBuyStatus(orderFillStatus, true);
             }
+        } else {
+            logger.info("StockTradeWorker - Currently no uptrend detected {} {} {} ", ema5, ema13, ema50);
         }
         previousTwoMinuteAgoEmas = previousEmas;
         previousEmas = new PreviousEmas(ema5, ema13, ema50);

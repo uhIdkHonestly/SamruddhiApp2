@@ -1,3 +1,4 @@
 # Project exclude paths
 /target/
 /git-token
+hashed.properties
