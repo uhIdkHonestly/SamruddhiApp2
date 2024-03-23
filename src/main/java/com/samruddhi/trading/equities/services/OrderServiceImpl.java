@@ -71,11 +71,10 @@ public class OrderServiceImpl implements OrderService {
 
         try (Response response = client.newCall(request).execute()) {
             String responseBody = response.body().string();
-            System.out.println("Response Body: " + response.body().string());
+            logger.info("Response Body: " + responseBody);
             if (response.code() != HttpURLConnection.HTTP_OK) {
                 // Handle other response codes or errors
-                logger.info(response.body().string());
-                throw new Exception("Buy Request failed with HTTP code: " + response.code() + response.body().string());
+                throw new Exception("Buy Request failed with HTTP code: " + response.code() + responseBody);
             }
             return JsonParser.getPlaceOrderResponse(response.toString());
         } catch (IOException e) {
@@ -103,8 +102,9 @@ public class OrderServiceImpl implements OrderService {
 
             try (Response response = client.newCall(request).execute()) {
                 if (response.code() != HttpURLConnection.HTTP_OK) {
-                    logger.info(response.body().string());
-                    throw new Exception("Request failed with HTTP code: " + response.code() + response.body().string());
+                    String responseBody = response.body().string();
+                    logger.info(responseBody);
+                    throw new Exception("Request failed with HTTP code: " + response.code() + responseBody);
                 }
             }
         } catch (Exception e) {
@@ -136,9 +136,10 @@ public class OrderServiceImpl implements OrderService {
         try (Response response = client.newCall(request).execute()) {
 
             if (response.code() != HttpURLConnection.HTTP_OK) {
+                String responsBody = response.body().string();
                 // Handle other response codes or errors
-                logger.info(response.body().string());
-                throw new Exception("Update Request failed with HTTP code: " + response.code() + response.body().string());
+                logger.info(responsBody);
+                throw new Exception("Update Request failed with HTTP code: " + response.code() + responsBody);
             }
             // Handle the response as needed
             return JsonParser.getUpdateOrderResponse(response.toString());

@@ -16,11 +16,9 @@ import com.samruddhi.trading.equities.services.OrderServiceImpl;
 import com.samruddhi.trading.equities.services.StreamingOptionQuoteServiceImpl;
 import com.samruddhi.trading.equities.services.base.OrderService;
 import com.samruddhi.trading.equities.services.base.StreamingOptionQuoteService;
+import common.CommonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 
 import static com.samruddhi.trading.equities.domain.getordersbyid.OrderFillStatus.ORDER_FILL_STATUS_FAILED;
 import static com.samruddhi.trading.equities.logic.OptionOrderFillStatus.ORDER_STATUS_OPEN;
@@ -91,7 +89,7 @@ public class OptionOrderProcessorImpl implements OptionOrderProcessor {
         double callLimitPrice = getCallOrderPlacementPrice(optionData);
 
         PlaceOrderPayload payload = new PlaceOrderPayload();
-        String encodedOptionTicker = URLEncoder.encode(ticker + " " + nextStrikePrice.getDateWithStrike(), StandardCharsets.UTF_8.toString());
+        String encodedOptionTicker = CommonUtils.replaceSpaces(nextStrikePrice.getFullOptionTicker());
 
         payload.setAccountID(ConfigManager.getInstance().getProperty("account.id"));
         payload.setSymbol(encodedOptionTicker);
@@ -106,6 +104,8 @@ public class OptionOrderProcessorImpl implements OptionOrderProcessor {
         OrderFillStatus orderFillStatus = orderFillStatusRetrievalService.waitForOrderFill(orderId);
         return orderFillStatus;
     }
+
+
 
     @Override
     public OrderFillStatus createPutBuyOrder(NextStrikePrice nextStrikePrice, String ticker, double price) throws Exception {
@@ -134,7 +134,7 @@ public class OptionOrderProcessorImpl implements OptionOrderProcessor {
         double putLimitPrice = getPutOrderPlacementPrice(optionData);
 
         PlaceOrderPayload payload = new PlaceOrderPayload();
-        String encodedOptionTicker = URLEncoder.encode(ticker + " " + nextStrikePrice.getDateWithStrike(), StandardCharsets.UTF_8.toString());
+        String encodedOptionTicker = CommonUtils.replaceSpaces(nextStrikePrice.getFullOptionTicker());
 
         payload.setAccountID(ConfigManager.getInstance().getProperty("account.id"));
         payload.setSymbol(encodedOptionTicker);

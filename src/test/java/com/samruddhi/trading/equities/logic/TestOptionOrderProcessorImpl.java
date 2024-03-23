@@ -1,7 +1,6 @@
 package com.samruddhi.trading.equities.logic;
 
 import com.samruddhi.trading.equities.domain.NextStrikePrice;
-import com.samruddhi.trading.equities.domain.getordersbyid.OrderFillStatus;
 import com.samruddhi.trading.equities.services.MarketDataServiceImpl;
 import com.samruddhi.trading.equities.services.base.MarketDataService;
 import org.junit.Test;
@@ -28,6 +27,4 @@ public class TestOptionOrderProcessorImpl {
             e.printStackTrace();
         }
     }
-
-
 }

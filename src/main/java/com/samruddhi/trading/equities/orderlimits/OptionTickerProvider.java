@@ -5,6 +5,8 @@ import static com.samruddhi.trading.equities.orderlimits.NearestOptionStrikePric
 
 import com.samruddhi.trading.equities.domain.NextStrikePrice;
 import com.samruddhi.trading.equities.logic.OptionExpiryPeriod;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -39,23 +41,35 @@ import java.util.Map;
  */
 public class OptionTickerProvider {
 
+    private static final Logger logger = LoggerFactory.getLogger(OptionTickerProvider.class);
 
     //TO DO FIX ME to add all US holidays for 2024 and 2025 and 2026
-
-    Map<LocalDate, LocalDate> usHolidays2024AndBeyond = Map.of();
+    private static final Map<String, String> usHolidays2024AndBeyond = Map.of("240329", "240328",
+            "250418", "250417",
+            "250704", "250703",
+            "260403", "260327",
+            "260619", "260618",
+            "260703", "260702",
+            "261225", "261224"
+            );
 
     private static final DateTimeFormatter dateformatddMMyy = DateTimeFormatter.ofPattern("yyMMdd");
 
     public static NextStrikePrice getNextOptionTicker(String ticker, double price, char callOrPut) {
         String nextExpiryDate = OptionExpiryPeriod.hasDailyOptions(ticker) ? getToday() : getNextFriday();
         double strikePrice = nextStrikePrice(ticker, price);
+        boolean isInteger = strikePrice % 1 == 0;
 
         // "Symbol": "MSFT 211217P332.5",
         StringBuilder fulltickerSb = new StringBuilder(ticker);
         fulltickerSb.append(" ");
         fulltickerSb.append(nextExpiryDate);
         fulltickerSb.append(callOrPut);
-        fulltickerSb.append(strikePrice);
+        if(isInteger)
+            fulltickerSb.append((int)strikePrice); // we dont want 90.0 causes invalid option ticker
+        else
+            fulltickerSb.append(strikePrice);
+
         // We may not need this piece
         StringBuilder tickerWithDateSb = new StringBuilder(strikePrice + "");
         tickerWithDateSb.append(nextExpiryDate);
@@ -73,13 +87,9 @@ public class OptionTickerProvider {
         LocalDate today = LocalDate.now();
         LocalDate updatedDate = today.with(TemporalAdjusters.next(DayOfWeek.FRIDAY));
 
-        return dateformatddMMyy.format(updatedDate);
-    }
-
-    public static void main(String[] args) {
-        OptionTickerProvider optionTickerProvider = new OptionTickerProvider();
-        String adjustedDate = optionTickerProvider.getNextFriday();
-        System.out.println("adjustedDate" + adjustedDate);
+        String nextFriday =  dateformatddMMyy.format(updatedDate);
+        logger.info("nextFriday {}", nextFriday);
+        return usHolidays2024AndBeyond.getOrDefault(nextFriday, nextFriday);
     }
 
     /**
@@ -111,5 +121,14 @@ public class OptionTickerProvider {
             }
         }
         return closestStrikePrice;
+    }
+
+    public static void main(String[] args) {
+        OptionTickerProvider optionTickerProvider = new OptionTickerProvider();
+        String adjustedDate = optionTickerProvider.getNextFriday();
+        logger.info("adjustedDate " + adjustedDate);
+
+        NextStrikePrice nextStrikePrice = optionTickerProvider.getNextOptionTicker("PLTR", 24.01, 'C');
+        logger.info("nextStrikePrice " + nextStrikePrice);
     }
 }
