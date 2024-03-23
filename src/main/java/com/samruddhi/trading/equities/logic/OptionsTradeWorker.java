@@ -242,10 +242,12 @@ public class OptionsTradeWorker extends BaseTradeWorker {
      *
      * @param ticker = Underlying ticker not Option ticker with strike
      */
-    private OrderFillStatus initiateCallOrPutBuying(String ticker, double price, char callOrPut) throws Exception {
+    OrderFillStatus initiateCallOrPutBuying(String ticker, double price, char callOrPut) throws Exception {
         OrderFillStatus orderFillStatus = ORDER_FILL_STATUS_FAILED;
         try {
             NextStrikePrice nextStrikePrice = OptionTickerProvider.getNextOptionTicker(ticker, price, callOrPut);
+
+            logger.info("NextStrikePrice" + nextStrikePrice);
             orderFillStatus = switch (callOrPut) {
                 case 'C' -> optionOrderProcessor.createCallBuyOrder(nextStrikePrice, ticker, price);
                 case 'P' -> optionOrderProcessor.createPutBuyOrder(nextStrikePrice, ticker, price);

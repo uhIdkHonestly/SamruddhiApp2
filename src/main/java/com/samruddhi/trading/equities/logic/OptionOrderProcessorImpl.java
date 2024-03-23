@@ -1,43 +1,29 @@
 package com.samruddhi.trading.equities.logic;
 
-import static com.samruddhi.trading.equities.domain.getordersbyid.OrderFillStatus.ORDER_FILL_STATUS_FAILED;
-import static com.samruddhi.trading.equities.logic.OptionOrderFillStatus.ORDER_STATUS_FILLED;
-import static com.samruddhi.trading.equities.logic.OptionOrderFillStatus.ORDER_STATUS_OPEN;
-
-import static com.samruddhi.trading.equities.tradingmode.TradingModeEnum.DUMMY;
-
 import com.samruddhi.trading.equities.config.ConfigManager;
 import com.samruddhi.trading.equities.domain.NextStrikePrice;
 import com.samruddhi.trading.equities.domain.OptionData;
 import com.samruddhi.trading.equities.domain.PlaceOrderPayload;
-import com.samruddhi.trading.equities.domain.getordersbyid.GetOrdersByOrderIdResponse;
-import com.samruddhi.trading.equities.domain.getordersbyid.Leg;
-import com.samruddhi.trading.equities.domain.getordersbyid.Order;
 import com.samruddhi.trading.equities.domain.getordersbyid.OrderFillStatus;
+import com.samruddhi.trading.equities.domain.placeorder.Error;
 import com.samruddhi.trading.equities.domain.placeorder.PlaceOrderResponse;
 import com.samruddhi.trading.equities.domain.updateorder.UpdateOrderResponse;
 import com.samruddhi.trading.equities.exceptions.CallOrderException;
 import com.samruddhi.trading.equities.logic.base.OptionOrderProcessor;
 import com.samruddhi.trading.equities.orderlimits.ContractMaxPrice;
-import com.samruddhi.trading.equities.services.GetOrdersByOrderIdServiceImpl;
 import com.samruddhi.trading.equities.services.OrderFillStatusRetrievalService;
 import com.samruddhi.trading.equities.services.OrderServiceImpl;
 import com.samruddhi.trading.equities.services.StreamingOptionQuoteServiceImpl;
-import com.samruddhi.trading.equities.services.base.GetOrdersByOrderIdService;
 import com.samruddhi.trading.equities.services.base.OrderService;
 import com.samruddhi.trading.equities.services.base.StreamingOptionQuoteService;
-
-import com.samruddhi.trading.equities.domain.placeorder.Error;
-import com.samruddhi.trading.equities.services.dummy.DummyGetOrdersByOrderIdServiceImpl;
-import com.samruddhi.trading.equities.services.dummy.DummyOrderServiceImpl;
-import com.samruddhi.trading.equities.tradingmode.TradingMode;
-import com.samruddhi.trading.equities.tradingmode.TradingModeEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+
+import static com.samruddhi.trading.equities.domain.getordersbyid.OrderFillStatus.ORDER_FILL_STATUS_FAILED;
+import static com.samruddhi.trading.equities.logic.OptionOrderFillStatus.ORDER_STATUS_OPEN;
 
 /**
  * Intelligently process Option order, retrieve current bid/ask each time, this should include retry logic as Option price may have gone up or down after Order is placed first
@@ -45,7 +31,7 @@ import java.nio.charset.StandardCharsets;
 public class OptionOrderProcessorImpl implements OptionOrderProcessor {
     private static final Logger logger = LoggerFactory.getLogger(OptionOrderProcessorImpl.class);
 
-    private static final String  BUY_ORDER = "BUY";
+    private static final String BUY_ORDER = "BUY";
     private static final String CALL_BUY_ORDER = "BUY";
     private static final String CALL_SELL_ORDER = "SELL";
 
@@ -95,7 +81,7 @@ public class OptionOrderProcessorImpl implements OptionOrderProcessor {
         OptionData optionData = streamingOptionQuoteService.getOptionQuote(nextStrikePrice.getFullOptionTicker());
 
         // Check if below allowed max for Option contract
-        if(buyOrSellAction == BUY_ORDER) {
+        if (buyOrSellAction == BUY_ORDER) {
             if (!ContractMaxPrice.validateMaxContractPriceByTicker(ticker, optionData.getMid(), price)) {
                 logger.info("Not buying CALL for ticker {} due to high price {}", nextStrikePrice.getFullOptionTicker(), price);
                 return OrderFillStatus.ORDER_FILL_STATUS_ABORTED;
@@ -138,7 +124,7 @@ public class OptionOrderProcessorImpl implements OptionOrderProcessor {
         OptionData optionData = streamingOptionQuoteService.getOptionQuote(nextStrikePrice.getFullOptionTicker());
 
         // Check if below allowed max for Option contract
-        if(buyOrSellAction == BUY_ORDER) {
+        if (buyOrSellAction == BUY_ORDER) {
             if (!ContractMaxPrice.validateMaxContractPriceByTicker(ticker, optionData.getMid(), price)) {
                 logger.info("Not buying PUT for ticker {} due to high price {}", nextStrikePrice.getFullOptionTicker(), price);
                 return OrderFillStatus.ORDER_FILL_STATUS_ABORTED;

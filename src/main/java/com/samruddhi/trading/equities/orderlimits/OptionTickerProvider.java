@@ -10,6 +10,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
+import java.util.Map;
 
 /**
  * Example Options Tickers
@@ -38,7 +39,12 @@ import java.time.temporal.TemporalAdjusters;
  */
 public class OptionTickerProvider {
 
-    private static final DateTimeFormatter dateformatddMMyyyy = DateTimeFormatter.ofPattern("yyMMdd");
+
+    //TO DO FIX ME to add all US holidays for 2024 and 2025 and 2026
+
+    Map<LocalDate, LocalDate> usHolidays2024AndBeyond = Map.of();
+
+    private static final DateTimeFormatter dateformatddMMyy = DateTimeFormatter.ofPattern("yyMMdd");
 
     public static NextStrikePrice getNextOptionTicker(String ticker, double price, char callOrPut) {
         String nextExpiryDate = OptionExpiryPeriod.hasDailyOptions(ticker) ? getToday() : getNextFriday();
@@ -60,13 +66,14 @@ public class OptionTickerProvider {
 
     static String getToday() {
         LocalDate localDate = LocalDate.now();
-        return dateformatddMMyyyy.format(localDate);
+        return dateformatddMMyy.format(localDate);
     }
 
     static String getNextFriday() {
         LocalDate today = LocalDate.now();
         LocalDate updatedDate = today.with(TemporalAdjusters.next(DayOfWeek.FRIDAY));
-        return dateformatddMMyyyy.format(updatedDate);
+
+        return dateformatddMMyy.format(updatedDate);
     }
 
     public static void main(String[] args) {
