@@ -15,9 +15,7 @@ import com.samruddhi.trading.equities.studies.RSICalculator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.swing.*;
 import java.util.List;
-import java.util.concurrent.Callable;
 
 import static com.samruddhi.trading.equities.domain.getordersbyid.OrderFillStatus.ORDER_FILL_STATUS_FAILED;
 import static com.samruddhi.trading.equities.logic.OptionOrderFillStatus.*;
@@ -33,11 +31,6 @@ public class StockTradeWorker extends BaseTradeWorker {
     // We allow upto 3 exceptions per Ticker in the TradeWorker
     private final int MAX_ALLOWED_EXCEPTION_COUNT = 3;
     private int currentExceptionCount = 0;
-
-    private enum CurrentStatus {
-        UPTREND, DOWNTREND, CALL_HELD, PUT_HELD, STOCKS_HELD, NO_STATUS;
-
-    }
 
     private boolean isTerminated = false;
     private MarketDataService marketDataService;
@@ -56,11 +49,7 @@ public class StockTradeWorker extends BaseTradeWorker {
      */
     private PreviousEmas previousTwoMinuteAgoEmas;
 
-    /**
-     * What's my curent status ie UPTREND, DOWNTREND, CALL_HELD, PUT_HELD, NO_STATUS,
-     * stored for checking worker status easily
-     */
-    private CurrentStatus currentStatus;
+
 
     /**
      * Details of order fill status that came from ORDER
@@ -77,8 +66,8 @@ public class StockTradeWorker extends BaseTradeWorker {
     private ConcurrentCompletedTradeQueue concurrentCompletedTradeQueue;
 
     public StockTradeWorker(MarketDataService marketDataService, String ticker) {
-        this.marketDataService = marketDataService;
         this.currentStatus = CurrentStatus.NO_STATUS;
+        this.marketDataService = marketDataService;
         this.tradeWorkerStatus = new TradeWorkerStatus("");
         this.previousEmas = new PreviousEmas(0, 0, 0);
         this.previousTwoMinuteAgoEmas = new PreviousEmas(0, 0, 0);
@@ -118,8 +107,8 @@ public class StockTradeWorker extends BaseTradeWorker {
                     if (isTerminated)
                         break;
 
-                    // Sleep for 1/2 minute, some import issue in J 21 with TimeUnit.MILLISECONDS.sleep
-                    Thread.sleep(PER_INTERVAL_SLEEP_TIME);
+                    // Sleep for 1 or 1/2 minute, some import issue in J 21 with TimeUnit.MILLISECONDS.sleep
+                    doSleep();
                 } catch (InterruptedException e) {
                     logger.info("Task interrupted.");
                     Thread.currentThread().interrupt(); // Preserve interrupt status
@@ -139,7 +128,6 @@ public class StockTradeWorker extends BaseTradeWorker {
         }
         return null;
     }
-
 
     private void checkAndPlaceStockBuyOrder(List<Bar> allMinuteBars) throws Exception {
 

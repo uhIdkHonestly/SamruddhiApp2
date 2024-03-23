@@ -1,7 +1,6 @@
 package com.samruddhi.trading.equities.logic;
 
 import java.util.List;
-import java.util.concurrent.Callable;
 
 import com.samruddhi.trading.equities.domain.FinishedTrade;
 import com.samruddhi.trading.equities.domain.NextStrikePrice;
@@ -35,10 +34,6 @@ public class OptionsTradeWorker extends BaseTradeWorker {
     private final int MAX_ALLOWED_EXCEPTION_COUNT = 3;
     private int currentExceptionCount = 0;
 
-    private enum CurrentStatus {
-        UPTREND, DOWNTREND, CALL_HELD, PUT_HELD, NO_STATUS;
-    }
-
     private static final Logger logger = LoggerFactory.getLogger(OptionsTradeWorker.class);
 
     private boolean isTerminated = false;
@@ -59,12 +54,6 @@ public class OptionsTradeWorker extends BaseTradeWorker {
     private PreviousEmas previousTwoMinuteAgoEmas;
 
     /**
-     * What's my curent status ie UPTREND, DOWNTREND, CALL_HELD, PUT_HELD, NO_STATUS,
-     * stored for checking worker status easily
-     */
-    private CurrentStatus currentStatus;
-
-    /**
      * Details of order fill status that came from ORDER
      */
     private OrderFillStatus recentBuyFillStatus;
@@ -81,9 +70,8 @@ public class OptionsTradeWorker extends BaseTradeWorker {
     private ConcurrentCompletedTradeQueue concurrentCompletedTradeQueue;
 
     public OptionsTradeWorker(MarketDataService marketDataService, String ticker) {
-        this.marketDataService = marketDataService;
         this.currentStatus = CurrentStatus.NO_STATUS;
-
+        this.marketDataService = marketDataService;
         this.tradeWorkerStatus = new TradeWorkerStatus("");
         this.previousEmas = new PreviousEmas(0, 0, 0);
         this.previousTwoMinuteAgoEmas = new PreviousEmas(0, 0, 0);
@@ -132,7 +120,7 @@ public class OptionsTradeWorker extends BaseTradeWorker {
                         break;
 
                     // Sleep for around minute, some import issue in J 21 with TimeUnit.MILLISECONDS.sleep
-                    Thread.sleep(PER_INTERVAL_SLEEP_TIME);
+                    Thread.sleep(PER_INTERVAL_SLEEP_TIME_REGULAR);
                 } catch (InterruptedException e) {
                     logger.error("Task interrupted.");
                     Thread.currentThread().interrupt(); // Preserve interrupt status
