@@ -90,7 +90,6 @@ public class OptionOrderProcessorImpl implements OptionOrderProcessor {
      * @return
      * @throws Exception
      */
-
     private OrderFillStatus processCallOrder(String buyOrSellAction, NextStrikePrice nextStrikePrice, String ticker, double price) throws Exception {
         logger.info("entered processCallOrder for {} for {} ticker {} price {}", buyOrSellAction, nextStrikePrice, ticker, price);
         OptionData optionData = streamingOptionQuoteService.getOptionQuote(nextStrikePrice.getFullOptionTicker());

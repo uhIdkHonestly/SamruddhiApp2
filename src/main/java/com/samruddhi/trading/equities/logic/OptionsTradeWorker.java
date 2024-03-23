@@ -31,7 +31,6 @@ import static com.samruddhi.trading.equities.logic.OptionOrderFillStatus.*;
  */
 public class OptionsTradeWorker extends BaseTradeWorker {
 
-    private static int PER_INTERVAL_SLEEP_TIME = 100; // In milli seconds
     // We allow upto 3 exceptions per Ticker in the TradeWorker
     private final int MAX_ALLOWED_EXCEPTION_COUNT = 3;
     private int currentExceptionCount = 0;
@@ -104,9 +103,6 @@ public class OptionsTradeWorker extends BaseTradeWorker {
         while (!isTerminated) {
             while (!Thread.currentThread().isInterrupted()) {
                 try {
-                    // get  minute stock data , tick - 2 (just last 2) using the stock ticker
-
-                    List<Bar> minuteBars = marketDataService.getStockDataBars(ticker, "Minute", 1, 2);
 
                     // get  daily stock data for past 50 days
                     List<Bar> pastMinuteBars = marketDataService.getStockDataBars(ticker, "Minute", 1, 50);
@@ -115,16 +111,16 @@ public class OptionsTradeWorker extends BaseTradeWorker {
                     switch (currentStatus) {
                         case NO_STATUS, UPTREND, DOWNTREND -> {
                             if (!maxPnlLossExceededPerDay())
-                                checkAndPlaceOptionBuyOrder(minuteBars, pastMinuteBars);
+                                checkAndPlaceOptionBuyOrder(pastMinuteBars);
                         }
                         case CALL_HELD -> {
-                            checkAndPlaceCallSellPoint(minuteBars, pastMinuteBars);
+                            checkAndPlaceCallSellPoint(pastMinuteBars);
                             if (maxPnlLossExceededPerDay()) {
                                 isTerminated = true;
                             }
                         }
                         case PUT_HELD -> {
-                            checkAndPlacePutsSellPoint(minuteBars, pastMinuteBars);
+                            checkAndPlacePutsSellPoint(pastMinuteBars);
                             if (maxPnlLossExceededPerDay()) {
                                 isTerminated = true;
                             }
@@ -157,7 +153,7 @@ public class OptionsTradeWorker extends BaseTradeWorker {
         return null;
     }
 
-    private void checkAndPlaceOptionBuyOrder(List<Bar> minuteBars, List<Bar> allMinuteBars) throws Exception {
+    private void checkAndPlaceOptionBuyOrder(List<Bar> allMinuteBars) throws Exception {
 
         double ema5 = EMACalculator.calculateEMAs(allMinuteBars, 5);
         double ema13 = EMACalculator.calculateEMAs(allMinuteBars, 13);
@@ -173,20 +169,20 @@ public class OptionsTradeWorker extends BaseTradeWorker {
         boolean isRsiBullish = rsi > 40; // Fix me
 
         OrderFillStatus orderFillStatus = null;
-        if (ema13 > ema50 && ema5 > ema13 && previousEmas != null) {
+        if ((ema13 > ema50 || ema5 > ema50 ) && ema5 > ema13 && previousEmas != null) {
             // Probable Buy call scenario
             currentStatus = CurrentStatus.UPTREND;
 
             // Initiate an Option buy order if all criteria met
-            if (!isCallBuyBasedOnPreviousEmas() && isMacdBullish && isRsiBullish) {
+            if (!isCallBuyBasedOnPreviousEmas() && isMacdBullish) {
                 orderFillStatus = initiateCallOrPutBuying(ticker, allMinuteBars.get(allMinuteBars.size() - 1).getClose(), 'C');
                 saveBuyStatus(orderFillStatus, true);
             }
-        } else if (ema13 < ema50 && ema5 < ema13 && previousEmas != null) {
+        } else if ((ema13 < ema50 || ema5 < ema50) && ema5 < ema13 && previousEmas != null) {
             // Probable Buy put scenario
             currentStatus = CurrentStatus.DOWNTREND;
 
-            if (!isPutBuyBasedOnPreviousEmas() && !isMacdBullish && !isRsiBullish) {
+            if (!isPutBuyBasedOnPreviousEmas() && !isMacdBullish) {
                 //initiatePutBuying(ticker, price);
                 orderFillStatus = initiateCallOrPutBuying(ticker, allMinuteBars.get(allMinuteBars.size() - 1).getClose(), 'P');
                 saveBuyStatus(orderFillStatus, false);
@@ -206,8 +202,8 @@ public class OptionsTradeWorker extends BaseTradeWorker {
             // very beginning pf trading day, we ignore previous EMA check
             return false;
         } else {
-            boolean isCallBuyPerPreviousEma = previousEmas.ema13day > previousEmas.ema50day && previousEmas.ema5day > previousEmas.ema13day;
-            boolean isCallBuyPerPreTwoMinuteEma = previousTwoMinuteAgoEmas.ema13day > previousTwoMinuteAgoEmas.ema50day && previousTwoMinuteAgoEmas.ema5day > previousTwoMinuteAgoEmas.ema13day;
+            boolean isCallBuyPerPreviousEma = (previousEmas.ema13day > previousEmas.ema50day || previousEmas.ema5day > previousEmas.ema50day ) && previousEmas.ema5day > previousEmas.ema13day;
+            boolean isCallBuyPerPreTwoMinuteEma = (previousTwoMinuteAgoEmas.ema13day > previousTwoMinuteAgoEmas.ema50day || previousTwoMinuteAgoEmas.ema5day > previousTwoMinuteAgoEmas.ema50day) && previousTwoMinuteAgoEmas.ema5day > previousTwoMinuteAgoEmas.ema13day;
             // We need  a XOR as both should not be true ie shd not be a buy past 2 mins
             return isCallBuyPerPreviousEma ^ isCallBuyPerPreTwoMinuteEma;
         }
@@ -221,8 +217,8 @@ public class OptionsTradeWorker extends BaseTradeWorker {
             // very beginning pf trading day, we ignore previous EMA check
             return false;
         } else {
-            boolean isPastMinuteAPutBuy = previousEmas.ema13day < previousEmas.ema50day && previousEmas.ema5day < previousEmas.ema13day;
-            boolean isPastTwoMinuteAPutBuy = previousTwoMinuteAgoEmas.ema13day < previousTwoMinuteAgoEmas.ema50day && previousTwoMinuteAgoEmas.ema5day < previousTwoMinuteAgoEmas.ema13day;
+            boolean isPastMinuteAPutBuy = (previousEmas.ema13day < previousEmas.ema50day || previousEmas.ema5day < previousEmas.ema50day) && previousEmas.ema5day < previousEmas.ema13day;
+            boolean isPastTwoMinuteAPutBuy = (previousTwoMinuteAgoEmas.ema13day < previousTwoMinuteAgoEmas.ema50day || previousTwoMinuteAgoEmas.ema5day < previousTwoMinuteAgoEmas.ema50day) && previousTwoMinuteAgoEmas.ema5day < previousTwoMinuteAgoEmas.ema13day;
             // We need  a XOR as both should not be true ie shd not be a buy past 2 mins
             return isPastMinuteAPutBuy ^ isPastTwoMinuteAPutBuy;
         }
@@ -290,14 +286,13 @@ public class OptionsTradeWorker extends BaseTradeWorker {
     /**
      * This when we already hold a call and need to sell it as trend is reversing or we need to trim due to meeting target price
      * Calls held will be sold if conditions are met.
-     *
-     * @param minuteBars
+
      * @param pastMinuteBars
      */
-    private void checkAndPlaceCallSellPoint(List<Bar> minuteBars, List<Bar> pastMinuteBars) throws Exception {
+    private void checkAndPlaceCallSellPoint(List<Bar> pastMinuteBars) throws Exception {
 
         CallSellPointHelper callSellPointHelper = new CallSellPointHelper(ticker);
-        boolean isCallSellPointReached = callSellPointHelper.determineIfStockOrCallSellCriteriaMet(recentBuyFillStatus, minuteBars, pastMinuteBars);
+        boolean isCallSellPointReached = callSellPointHelper.determineIfStockOrCallSellCriteriaMet(recentBuyFillStatus, pastMinuteBars);
 
         if (isCallSellPointReached) {
             NextStrikePrice nextStrikePrice = OptionTickerProvider.getNextOptionTicker(ticker, pastMinuteBars.get(pastMinuteBars.size() - 1).getClose(), 'C');
@@ -320,19 +315,19 @@ public class OptionsTradeWorker extends BaseTradeWorker {
         return optionOrderProcessor.replaceCallOrPutSellOrder(orderId, nextStrikePrice, ticker, price);
     }
 
-    private void checkAndPlacePutsSellPoint(List<Bar> minuteBars, List<Bar> dailyBars) throws Exception {
+    private void checkAndPlacePutsSellPoint(List<Bar> allBars) throws Exception {
         CallSellPointHelper callSellPointHelper = new CallSellPointHelper(ticker);
-        boolean isCallSellPointReached = callSellPointHelper.determineIfPutSellCriteriaMet(recentBuyFillStatus, minuteBars, dailyBars);
+        boolean isCallSellPointReached = callSellPointHelper.determineIfPutSellCriteriaMet(recentBuyFillStatus, allBars);
         // TO DO Fix the logic here
 
         if (isCallSellPointReached) {
             // We need to sell this call Asap
-            NextStrikePrice nextStrikePrice = OptionTickerProvider.getNextOptionTicker(ticker, dailyBars.get(dailyBars.size() - 1).getClose(), 'P');
-            // CHeck here and other places,  if using Daily bars last price is ok or we need to get price from latest minute bar...
-            OrderFillStatus orderFillStatus = initiateCallOrPutSelling(nextStrikePrice, ticker, dailyBars.get(dailyBars.size() - 1).getClose(), 'P');
+            NextStrikePrice nextStrikePrice = OptionTickerProvider.getNextOptionTicker(ticker, allBars.get(allBars.size() - 1).getClose(), 'P');
+            // CHeck here and other places,  if using Daily bars last price is ok or we need to get price from the latest minute bar...
+            OrderFillStatus orderFillStatus = initiateCallOrPutSelling(nextStrikePrice, ticker, allBars.get(allBars.size() - 1).getClose(), 'P');
             // place a sell order and wait for completion of Order
             if (orderFillStatus.getStatus() == ORDER_STATUS_OPEN)
-                orderFillStatus = repeatUntilSold(orderFillStatus.getOrderId(), nextStrikePrice, ticker, dailyBars.get(dailyBars.size() - 1).getClose());
+                orderFillStatus = repeatUntilSold(orderFillStatus.getOrderId(), nextStrikePrice, ticker, allBars.get(allBars.size() - 1).getClose());
 
             // Append internal DS that holds finished trades for the Day
             storeFinishedTrade(orderFillStatus);

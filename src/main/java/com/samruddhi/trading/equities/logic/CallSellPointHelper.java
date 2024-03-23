@@ -17,42 +17,42 @@ public class CallSellPointHelper {
         this.ticker = ticker;
     }
 
-    public boolean determineIfStockOrCallSellCriteriaMet(OrderFillStatus recentBuyFillStatus, List<Bar> minuteBars, List<Bar> dailyBars) throws Exception {
-        double ema5 = EMACalculator.calculateEMAs(dailyBars, 5);
-        double ema13 = EMACalculator.calculateEMAs(dailyBars, 13);
-        double ema50 = EMACalculator.calculateEMAs(dailyBars, 50);
+    public boolean determineIfStockOrCallSellCriteriaMet(OrderFillStatus recentBuyFillStatus, List<Bar> allBars) throws Exception {
+        double ema5 = EMACalculator.calculateEMAs(allBars, 5);
+        double ema13 = EMACalculator.calculateEMAs(allBars, 13);
+        double ema50 = EMACalculator.calculateEMAs(allBars, 50);
 
         // calculate and validate MACD
-        List<Bar> bars26Days = dailyBars.subList(24, dailyBars.size());
+        List<Bar> bars26Days = allBars.subList(24, allBars.size());
         double[] macd = MACDCalculator.computeMACD(bars26Days, 12, 26, 9);
         boolean isMacdBullish = MACDCalculator.isMACDTrendBullish(macd[0], macd[1]);
 
         // Validate RSI and VWAP in the future,
-        double rsi = RSICalculator.calculateRSI(dailyBars.subList(36, dailyBars.size()), 14);
+        double rsi = RSICalculator.calculateRSI(allBars.subList(36, allBars.size()), 14);
 
         if ((ema5 < ema50 || ema5 < ema13 || !isMacdBullish) ||
-                (TradeWorkerPriceHelper.hasDroppedByGivenPercentage(recentBuyFillStatus, minuteBars.get(minuteBars.size() - 1), ConfigManager.getInstance().getAcceptablePriceDropPercent(recentBuyFillStatus.getFillPrice(), recentBuyFillStatus.getTicker())))) {
+                (TradeWorkerPriceHelper.hasDroppedByGivenPercentage(recentBuyFillStatus, allBars.get(allBars.size() - 1), ConfigManager.getInstance().getAcceptablePriceDropPercent(recentBuyFillStatus.getFillPrice(), recentBuyFillStatus.getTicker())))) {
             return true;
         }
         return false;
     }
 
-    public boolean determineIfPutSellCriteriaMet(OrderFillStatus recentBuyFillStatus, List<Bar> minuteBars, List<Bar> dailyBars) throws Exception {
-        double ema5 = EMACalculator.calculateEMAs(dailyBars, 5);
-        double ema13 = EMACalculator.calculateEMAs(dailyBars, 13);
-        double ema50 = EMACalculator.calculateEMAs(dailyBars, 50);
+    public boolean determineIfPutSellCriteriaMet(OrderFillStatus recentBuyFillStatus, List<Bar> allBars) throws Exception {
+        double ema5 = EMACalculator.calculateEMAs(allBars, 5);
+        double ema13 = EMACalculator.calculateEMAs(allBars, 13);
+        double ema50 = EMACalculator.calculateEMAs(allBars, 50);
 
         // calculate and validate MACD
-        List<Bar> bars26Days = dailyBars.subList(24, dailyBars.size());
+        List<Bar> bars26Days = allBars.subList(24, allBars.size());
         double[] macd = MACDCalculator.computeMACD(bars26Days, 12, 26, 9);
         boolean isMacdBullish = MACDCalculator.isMACDTrendBullish(macd[0], macd[1]);
 
         // Validate RSI and VWAP,
-        double rsi = RSICalculator.calculateRSI(dailyBars.subList(36, dailyBars.size()), 14);
+        double rsi = RSICalculator.calculateRSI(allBars.subList(36, allBars.size()), 14);
         boolean isRsiBullish = rsi > 40; // Fix me
 
         if ((ema5 > ema50 || ema5 > ema13 || isMacdBullish) ||
-                (TradeWorkerPriceHelper.hasDroppedByGivenPercentage(recentBuyFillStatus, minuteBars.get(minuteBars.size() - 1), ConfigManager.getInstance().getAcceptablePriceDropPercent(recentBuyFillStatus.getFillPrice(), recentBuyFillStatus.getTicker())))) {
+                (TradeWorkerPriceHelper.hasDroppedByGivenPercentage(recentBuyFillStatus, allBars.get(allBars.size() - 1), ConfigManager.getInstance().getAcceptablePriceDropPercent(recentBuyFillStatus.getFillPrice(), recentBuyFillStatus.getTicker())))) {
             return true;
         }
 
