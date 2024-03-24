@@ -41,10 +41,21 @@ public class OrderServiceImpl implements OrderService {
             "\"LimitPrice\": \"%s\"\n" +
             "}";
 
-    String PAYLOAD_POST_STR = "{"
+    String PAYLOAD_OPTIONS_POST_STR = "{"
             + "\"AccountID\": \"%s\","
             + "\"LimitPrice\": \"%s\","
             + "\"Legs\":  %s,"
+            + "\"Symbol\": \"%s\","
+            + "\"Quantity\": \"%s\","
+            + "\"OrderType\": \"%s\","
+            + "\"TradeAction\": \"%s\","
+            + "\"TimeInForce\": {\"Duration\": \"DAY\"},"
+            + "\"Route\": \"Intelligent\""
+            + "}";
+
+    String PAYLOAD_STOCKS_POST_STR = "{"
+            + "\"AccountID\": \"%s\","
+            + "\"LimitPrice\": \"%s\","
             + "\"Symbol\": \"%s\","
             + "\"Quantity\": \"%s\","
             + "\"OrderType\": \"%s\","
@@ -151,14 +162,23 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private String formatPayload(PlaceOrderPayload payload) {
-
-        String formattedMessage = String.format(PAYLOAD_POST_STR, ConfigManager.getInstance().getProperty("account.id"),
-                NumberFormatHelper.formatDecimals(payload.getLimitPrice(), 1), // TO DO fix decimals based on price
-                payload.getLegs(),
-                payload.getUnderlyingTicker(),
-                payload.getQuantity(),
-                payload.getOrderType(),
-                OptionTradeAction.getOptionTradeAction(payload.getTradeAction()));
+        String formattedMessage = "";
+        if (payload.isOption()) {
+            formattedMessage = String.format(PAYLOAD_OPTIONS_POST_STR, ConfigManager.getInstance().getProperty("account.id"),
+                    NumberFormatHelper.formatDecimals(payload.getLimitPrice(), 1), // TO DO fix decimals based on price
+                    payload.getLegs(),
+                    payload.getUnderlyingTicker(),
+                    payload.getQuantity(),
+                    payload.getOrderType(),
+                    OptionTradeAction.getOptionTradeAction(payload.getTradeAction()));
+        } else {
+            formattedMessage = String.format(PAYLOAD_STOCKS_POST_STR, ConfigManager.getInstance().getProperty("account.id"),
+                    NumberFormatHelper.formatDecimals(payload.getLimitPrice(), 1), // TO DO fix decimals based on price
+                    payload.getUnderlyingTicker(),
+                    payload.getQuantity(),
+                    payload.getOrderType(),
+                    payload.getTradeAction());
+        }
         logger.info("Payload: {}", formattedMessage);
         return formattedMessage;
     }

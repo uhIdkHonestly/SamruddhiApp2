@@ -7,7 +7,6 @@ import java.util.Objects;
  */
 public class PlaceOrderPayload {
     String underlyingTicker;
-
     String AccountID;
     /** If option trading thsi reflects Option Ticker */
     String symbol;
@@ -17,6 +16,8 @@ public class PlaceOrderPayload {
     String tradeAction = "BUY";
     String timeInForce = " { \"Duration\": \"DAY\"  }";
     String route = "\"Route\": \"Intelligent\"";
+
+    boolean isOption = false;
 
     String legs = """
             [ {
@@ -97,6 +98,14 @@ public class PlaceOrderPayload {
 
     public void setLegs(String legs) {
         this.legs = legs;
+    }
+
+    public boolean isOption() {
+        return isOption;
+    }
+
+    public void setOption(boolean option) {
+        isOption = option;
     }
 
     @Override

@@ -89,6 +89,7 @@ public class OptionOrderProcessorImpl implements OptionOrderProcessor {
         double callLimitPrice = getCallOrderPlacementPrice(optionData);
 
         PlaceOrderPayload payload = new PlaceOrderPayload();
+        payload.setOption(true);
         //String encodedOptionTicker = CommonUtils.replaceSpaces(nextStrikePrice.getFullOptionTicker());
         String encodedOptionTicker =  nextStrikePrice.getFullOptionTicker();
 
@@ -136,6 +137,7 @@ public class OptionOrderProcessorImpl implements OptionOrderProcessor {
         double putLimitPrice = getPutOrderPlacementPrice(optionData);
 
         PlaceOrderPayload payload = new PlaceOrderPayload();
+        payload.setOption(true);
        //String encodedOptionTicker = CommonUtils.replaceSpaces(nextStrikePrice.getFullOptionTicker());
         String encodedOptionTicker = nextStrikePrice.getFullOptionTicker();
 

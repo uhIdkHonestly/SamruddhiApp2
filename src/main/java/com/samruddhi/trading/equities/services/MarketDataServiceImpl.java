@@ -60,6 +60,7 @@ public class MarketDataServiceImpl implements MarketDataService {
 
         } catch (Exception e) {
             e.printStackTrace();
+            throw e;
         }
         return Collections.emptyList();
     }

@@ -62,6 +62,7 @@ public class StockOrderProcessorImpl implements StockOrderProcessor {
         double stockLimitPrice = getLimitOrderPlacementPrice(minuteBars.get(1));
 
         PlaceOrderPayload payload = new PlaceOrderPayload();
+        payload.setOption(false);
         payload.setAccountID(ConfigManager.getInstance().getProperty("account.id"));
         payload.setSymbol(ticker);
         payload.setUnderlyingTicker(ticker);

@@ -50,7 +50,6 @@ public class StockTradeWorker extends BaseTradeWorker {
     private PreviousEmas previousTwoMinuteAgoEmas;
 
 
-
     /**
      * Details of order fill status that came from ORDER
      */
@@ -145,7 +144,7 @@ public class StockTradeWorker extends BaseTradeWorker {
         boolean isRsiBullish = rsi > 40; // Fix me
 
         OrderFillStatus orderFillStatus = null;
-        if ((ema13 > ema50 || ema5 > ema50 ) && ema5 > ema13 && previousEmas != null) {
+        if ((ema13 > ema50 || ema5 > ema50) && ema5 > ema13 && previousEmas != null) {
             // Probable Buy call scenario
             currentStatus = CurrentStatus.UPTREND;
 
@@ -171,7 +170,7 @@ public class StockTradeWorker extends BaseTradeWorker {
             // very beginning pf trading day, we ignore previous EMA check
             return false;
         } else {
-            boolean isCallBuyPerPreviousEma = (previousEmas.ema13day > previousEmas.ema50day || previousEmas.ema5day > previousEmas.ema50day ) && previousEmas.ema5day > previousEmas.ema13day;
+            boolean isCallBuyPerPreviousEma = (previousEmas.ema13day > previousEmas.ema50day || previousEmas.ema5day > previousEmas.ema50day) && previousEmas.ema5day > previousEmas.ema13day;
             boolean isCallBuyPerPreTwoMinuteEma = (previousTwoMinuteAgoEmas.ema13day > previousTwoMinuteAgoEmas.ema50day || previousTwoMinuteAgoEmas.ema5day > previousTwoMinuteAgoEmas.ema50day) && previousTwoMinuteAgoEmas.ema5day > previousTwoMinuteAgoEmas.ema13day;
 
             // We need  a XOR as both should not be true ie shd not be a buy past 2 mins
@@ -219,7 +218,7 @@ public class StockTradeWorker extends BaseTradeWorker {
      *
      * @param ticker = Underlying ticker not Option ticker with strike
      */
-    private OrderFillStatus initiateStockBuying(String ticker, double price) throws Exception {
+    OrderFillStatus initiateStockBuying(String ticker, double price) throws Exception {
         OrderFillStatus orderFillStatus = ORDER_FILL_STATUS_FAILED;
         try {
             orderFillStatus = stockOrderProcessor.createStockBuyOrder(ticker, price);
