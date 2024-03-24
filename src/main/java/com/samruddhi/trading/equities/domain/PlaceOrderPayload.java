@@ -2,11 +2,14 @@ package com.samruddhi.trading.equities.domain;
 
 import java.util.Objects;
 
-/** Pojo for Place Order Request payload
- *
+/**
+ * Pojo for Place Order Request payload
  */
 public class PlaceOrderPayload {
+    String underlyingTicker;
+
     String AccountID;
+    /** If option trading thsi reflects Option Ticker */
     String symbol;
     int quantity;
     String orderType = "Limit";
@@ -14,6 +17,14 @@ public class PlaceOrderPayload {
     String tradeAction = "BUY";
     String timeInForce = " { \"Duration\": \"DAY\"  }";
     String route = "\"Route\": \"Intelligent\"";
+
+    String legs = """
+            [ {
+                "Quantity":%s,
+                "Symbol":"%s",
+                "TradeAction": "%s"
+                }
+            ]""";
 
     public String getAccountID() {
         return AccountID;
@@ -79,10 +90,20 @@ public class PlaceOrderPayload {
         this.route = route;
     }
 
+
+    public String getLegs() {
+        return String.format(legs, quantity, symbol, OptionTradeAction.getOptionTradeAction(tradeAction));
+    }
+
+    public void setLegs(String legs) {
+        this.legs = legs;
+    }
+
     @Override
     public String toString() {
         return "PlaceOrderPayload{" +
-                "AccountID='" + AccountID + '\'' +
+                "underlyingTicker='" + underlyingTicker + '\'' +
+                ", AccountID='" + AccountID + '\'' +
                 ", symbol='" + symbol + '\'' +
                 ", quantity=" + quantity +
                 ", orderType='" + orderType + '\'' +
@@ -90,7 +111,16 @@ public class PlaceOrderPayload {
                 ", tradeAction='" + tradeAction + '\'' +
                 ", timeInForce='" + timeInForce + '\'' +
                 ", route='" + route + '\'' +
+                ", legs='" + legs + '\'' +
                 '}';
+    }
+
+    public String getUnderlyingTicker() {
+        return underlyingTicker;
+    }
+
+    public void setUnderlyingTicker(String underlyingTicker) {
+        this.underlyingTicker = underlyingTicker;
     }
 
     @Override
@@ -104,4 +134,6 @@ public class PlaceOrderPayload {
     public int hashCode() {
         return Objects.hash(getAccountID(), getSymbol(), getQuantity(), getOrderType(), getLimitPrice(), getTradeAction(), getTimeInForce(), getRoute());
     }
+
+
 }

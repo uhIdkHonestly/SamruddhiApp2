@@ -347,5 +347,45 @@ public class OptionData {
     public void setLegs(List<Object> legs) {
         this.legs = legs;
     }
+
+    @Override
+    public String toString() {
+        return "OptionData{" +
+                "delta='" + delta + '\'' +
+                ", theta='" + theta + '\'' +
+                ", gamma='" + gamma + '\'' +
+                ", rho='" + rho + '\'' +
+                ", vega='" + vega + '\'' +
+                ", impliedVolatility='" + impliedVolatility + '\'' +
+                ", intrinsicValue='" + intrinsicValue + '\'' +
+                ", extrinsicValue='" + extrinsicValue + '\'' +
+                ", theoreticalValue='" + theoreticalValue + '\'' +
+                ", probabilityITM='" + probabilityITM + '\'' +
+                ", probabilityOTM='" + probabilityOTM + '\'' +
+                ", probabilityBE='" + probabilityBE + '\'' +
+                ", probabilityITM_IV='" + probabilityITM_IV + '\'' +
+                ", probabilityOTM_IV='" + probabilityOTM_IV + '\'' +
+                ", probabilityBE_IV='" + probabilityBE_IV + '\'' +
+                ", theoreticalValue_IV='" + theoreticalValue_IV + '\'' +
+                ", dailyOpenInterest=" + dailyOpenInterest +
+                ", ask='" + ask + '\'' +
+                ", bid='" + bid + '\'' +
+                ", mid='" + mid + '\'' +
+                ", askSize=" + askSize +
+                ", bidSize=" + bidSize +
+                ", close='" + close + '\'' +
+                ", high='" + high + '\'' +
+                ", last='" + last + '\'' +
+                ", low='" + low + '\'' +
+                ", netChange='" + netChange + '\'' +
+                ", netChangePct='" + netChangePct + '\'' +
+                ", open='" + open + '\'' +
+                ", previousClose='" + previousClose + '\'' +
+                ", volume=" + volume +
+                ", side='" + side + '\'' +
+                ", strikes=" + strikes +
+                ", legs=" + legs +
+                '}';
+    }
 }
 

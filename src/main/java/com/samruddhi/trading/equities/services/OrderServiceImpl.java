@@ -1,9 +1,11 @@
 package com.samruddhi.trading.equities.services;
 
 import com.samruddhi.trading.equities.config.ConfigManager;
+import com.samruddhi.trading.equities.domain.OptionTradeAction;
 import com.samruddhi.trading.equities.domain.PlaceOrderPayload;
 import com.samruddhi.trading.equities.domain.placeorder.PlaceOrderResponse;
 import com.samruddhi.trading.equities.domain.updateorder.UpdateOrderResponse;
+import com.samruddhi.trading.equities.logic.NumberFormatHelper;
 import com.samruddhi.trading.equities.services.base.OrderService;
 import com.samruddhi.trading.equities.tradingmode.TradingMode;
 import common.JsonParser;
@@ -41,6 +43,8 @@ public class OrderServiceImpl implements OrderService {
 
     String PAYLOAD_POST_STR = "{"
             + "\"AccountID\": \"%s\","
+            + "\"LimitPrice\": \"%s\","
+            + "\"Legs\":  %s,"
             + "\"Symbol\": \"%s\","
             + "\"Quantity\": \"%s\","
             + "\"OrderType\": \"%s\","
@@ -149,11 +153,13 @@ public class OrderServiceImpl implements OrderService {
     private String formatPayload(PlaceOrderPayload payload) {
 
         String formattedMessage = String.format(PAYLOAD_POST_STR, ConfigManager.getInstance().getProperty("account.id"),
-                payload.getSymbol(),
+                NumberFormatHelper.formatDecimals(payload.getLimitPrice(), 1), // TO DO fix decimals based on price
+                payload.getLegs(),
+                payload.getUnderlyingTicker(),
                 payload.getQuantity(),
                 payload.getOrderType(),
-                payload.getTradeAction());
-        logger.info("Payload: {}", payload);
+                OptionTradeAction.getOptionTradeAction(payload.getTradeAction()));
+        logger.info("Payload: {}", formattedMessage);
         return formattedMessage;
     }
 }

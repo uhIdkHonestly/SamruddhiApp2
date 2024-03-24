@@ -77,7 +77,7 @@ public class OptionOrderProcessorImpl implements OptionOrderProcessor {
     private OrderFillStatus processCallOrder(String buyOrSellAction, NextStrikePrice nextStrikePrice, String ticker, double price) throws Exception {
         logger.info("entered processCallOrder for {} for {} ticker {} price {}", buyOrSellAction, nextStrikePrice, ticker, price);
         OptionData optionData = streamingOptionQuoteService.getOptionQuote(nextStrikePrice.getFullOptionTicker());
-
+        logger.info("optionData quote {}" , optionData);
         // Check if below allowed max for Option contract
         if (buyOrSellAction == BUY_ORDER) {
             if (!ContractMaxPrice.validateMaxContractPriceByTicker(ticker, optionData.getMid(), price)) {
@@ -89,10 +89,12 @@ public class OptionOrderProcessorImpl implements OptionOrderProcessor {
         double callLimitPrice = getCallOrderPlacementPrice(optionData);
 
         PlaceOrderPayload payload = new PlaceOrderPayload();
-        String encodedOptionTicker = CommonUtils.replaceSpaces(nextStrikePrice.getFullOptionTicker());
+        //String encodedOptionTicker = CommonUtils.replaceSpaces(nextStrikePrice.getFullOptionTicker());
+        String encodedOptionTicker =  nextStrikePrice.getFullOptionTicker();
 
         payload.setAccountID(ConfigManager.getInstance().getProperty("account.id"));
         payload.setSymbol(encodedOptionTicker);
+        payload.setUnderlyingTicker(ticker);
         payload.setQuantity(MIN_CALL_QUANTITY);
         payload.setTradeAction(buyOrSellAction);
         payload.setLimitPrice(callLimitPrice);
@@ -134,10 +136,12 @@ public class OptionOrderProcessorImpl implements OptionOrderProcessor {
         double putLimitPrice = getPutOrderPlacementPrice(optionData);
 
         PlaceOrderPayload payload = new PlaceOrderPayload();
-        String encodedOptionTicker = CommonUtils.replaceSpaces(nextStrikePrice.getFullOptionTicker());
+       //String encodedOptionTicker = CommonUtils.replaceSpaces(nextStrikePrice.getFullOptionTicker());
+        String encodedOptionTicker = nextStrikePrice.getFullOptionTicker();
 
         payload.setAccountID(ConfigManager.getInstance().getProperty("account.id"));
         payload.setSymbol(encodedOptionTicker);
+        payload.setUnderlyingTicker(ticker);
         payload.setQuantity(MIN_PUT_QUANTITY);
         payload.setTradeAction(buyOrSellAction);
         payload.setLimitPrice(putLimitPrice);
@@ -168,11 +172,14 @@ public class OptionOrderProcessorImpl implements OptionOrderProcessor {
     }
 
     private double getCallOrderPlacementPrice(OptionData optionData) {
-        return (optionData.getAsk() - optionData.getBid()) * BID_ASK_MULTIPLIER;
+        // TO DO We need better logic here
+        //return (optionData.getAsk() - optionData.getBid()) * BID_ASK_MULTIPLIER;
+        return optionData.getMid();
     }
 
     private double getPutOrderPlacementPrice(OptionData optionData) {
-        return (optionData.getAsk() - optionData.getBid()) * BID_ASK_MULTIPLIER;
+        //return (optionData.getAsk() - optionData.getBid()) * BID_ASK_MULTIPLIER;
+        return optionData.getMid();
     }
 
     public void cancelOrder(String orderId) throws Exception {
