@@ -260,7 +260,7 @@ public class OptionsTradeWorker extends BaseTradeWorker {
         return orderFillStatus;
     }
 
-    private OrderFillStatus initiateCallOrPutSelling(NextStrikePrice nextStrikePrice, String ticker, double price, char callOrPut) throws Exception {
+    OrderFillStatus initiateCallOrPutSelling(NextStrikePrice nextStrikePrice, String ticker, double price, char callOrPut) throws Exception {
         OrderFillStatus orderFillStatus = ORDER_FILL_STATUS_FAILED;
         try {
             orderFillStatus = switch (callOrPut) {

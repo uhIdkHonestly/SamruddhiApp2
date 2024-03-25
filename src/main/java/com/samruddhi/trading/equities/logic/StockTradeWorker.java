@@ -230,7 +230,7 @@ public class StockTradeWorker extends BaseTradeWorker {
         return orderFillStatus;
     }
 
-    private OrderFillStatus initiateStockSelling(String ticker, double price) throws Exception {
+    OrderFillStatus initiateStockSelling(String ticker, double price) throws Exception {
         OrderFillStatus orderFillStatus = ORDER_FILL_STATUS_FAILED;
         try {
             orderFillStatus = stockOrderProcessor.createStockSellOrder(ticker, price);

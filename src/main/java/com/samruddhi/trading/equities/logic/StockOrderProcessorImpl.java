@@ -40,13 +40,13 @@ public class StockOrderProcessorImpl implements StockOrderProcessor {
 
     @Override
     public OrderFillStatus createStockBuyOrder(String ticker, double price) throws Exception {
-        logger.info("entered processCallOrder for {} for {} ticker {} initial price {}", ticker, price);
+        logger.info("entered processCallOrder  for ticker {} initial price {}", ticker, price);
         return buyOrSellOrderInternal(ticker, "BUY", price);
     }
 
     @Override
     public OrderFillStatus createStockSellOrder(String ticker, double price) throws Exception {
-        logger.info("entered createStockSellOrder for {} for {} ticker {} initial price {}", ticker, price);
+        logger.info("entered createStockSellOrder  for ticker {} initial price {}", ticker, price);
 
         return buyOrSellOrderInternal(ticker, "SELL", price);
     }

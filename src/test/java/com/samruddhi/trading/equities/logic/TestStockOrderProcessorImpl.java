@@ -1,7 +1,9 @@
 package com.samruddhi.trading.equities.logic;
 
+import com.samruddhi.trading.equities.domain.getordersbyid.OrderFillStatus;
 import com.samruddhi.trading.equities.services.MarketDataServiceImpl;
 import com.samruddhi.trading.equities.services.base.MarketDataService;
+import junit.framework.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,19 +14,32 @@ public class TestStockOrderProcessorImpl {
     @Test
     public void initiateStockBuying() {
         try {
-            String ticker = "PLTR";
-            double price = 24.01;
+            MarketDataService marketDataService = new MarketDataServiceImpl();
+
+            String ticker = "AMZN";
+            double lastBarClosePrice = 178.68;
+            StockTradeWorker tradeWorker = new StockTradeWorker(marketDataService, ticker);
+            OrderFillStatus orderFillStatus = tradeWorker.initiateStockBuying(ticker, lastBarClosePrice);
+            String orderId = orderFillStatus.getOrderId();
+            Assert.assertTrue(!orderId.isEmpty());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    @Test
+    public void initiateStockSelling() {
+        try {
+            String ticker = "AMZN";
+            double lastBarClosePrice = 178.68;
 
             MarketDataService marketDataService = new MarketDataServiceImpl();
-          /*
-            StockTradeWorker tradeWorker = new StockTradeWorker(marketDataService, "PLTR");
-            tradeWorker.initiateStockBuying( ticker,   price);*/
 
-            ticker = "NVDA";
-            price = 942.89;
-            StockTradeWorker tradeWorker = new StockTradeWorker(marketDataService, "NVDA");
-            tradeWorker.initiateStockBuying(ticker, price);
-
+            StockTradeWorker tradeWorker = new StockTradeWorker(marketDataService, ticker);
+            OrderFillStatus orderFillStatus = tradeWorker.initiateStockSelling(ticker, lastBarClosePrice);
+            String orderId = orderFillStatus.getOrderId();
+            Assert.assertTrue(!orderId.isEmpty());
         } catch (Exception e) {
             e.printStackTrace();
         }
