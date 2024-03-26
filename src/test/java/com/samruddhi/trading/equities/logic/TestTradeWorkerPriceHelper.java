@@ -10,30 +10,51 @@ import org.junit.Test;
 public class TestTradeWorkerPriceHelper {
     @Test
     public void stockPriceHasNotDroppedByGivenPercentage() {
+        String ticker = "AAPL";
         OrderFillStatus buyFillStatus = new OrderFillStatus();
         buyFillStatus.setFillPrice(201);
-        buyFillStatus.setTicker("AAPL");
+        buyFillStatus.setTicker(ticker);
+        buyFillStatus.setPriceOfUnderlying(201);
         Bar currentOptionPriceBar = new Bar();
-        currentOptionPriceBar.setClose("198");
+        currentOptionPriceBar.setClose("199");
 
-        double threshHoldPercentage = 0.02;
+        StockSellPointHelper stockSellPointHelper = new StockSellPointHelper(ticker);
 
-        boolean hasPriceDroppedBelowThreshhold = TradeWorkerPriceHelper.hasDroppedByGivenPercentage(buyFillStatus, currentOptionPriceBar, threshHoldPercentage);
+        boolean hasPriceDroppedBelowThreshhold = TradeWorkerPriceHelper.hasDroppedByGivenPercentage(buyFillStatus, currentOptionPriceBar, stockSellPointHelper.getAcceptablePriceChangePercent(buyFillStatus.getPriceOfUnderlying(), ticker));
 
         assertFalse(hasPriceDroppedBelowThreshhold);
     }
 
     @Test
     public void stockPriceHasDroppedByGivenPercentage() {
+        String ticker = "AAPL";
         OrderFillStatus buyFillStatus = new OrderFillStatus();
         buyFillStatus.setFillPrice(201);
-        buyFillStatus.setTicker("AAPL");
+        buyFillStatus.setPriceOfUnderlying(201);
+        buyFillStatus.setTicker(ticker);
         Bar currentOptionPriceBar = new Bar();
         currentOptionPriceBar.setClose("195");
 
-        double threshHoldPercentage = 0.02;
+        StockSellPointHelper stockSellPointHelper = new StockSellPointHelper(ticker);
 
-        boolean hasPriceDroppedBelowThreshhold = TradeWorkerPriceHelper.hasDroppedByGivenPercentage(buyFillStatus, currentOptionPriceBar, threshHoldPercentage);
+        boolean hasPriceDroppedBelowThreshhold = TradeWorkerPriceHelper.hasDroppedByGivenPercentage(buyFillStatus, currentOptionPriceBar, stockSellPointHelper.getAcceptablePriceChangePercent(buyFillStatus.getPriceOfUnderlying(), ticker));
+
+        assertTrue(hasPriceDroppedBelowThreshhold);
+    }
+
+    @Test
+    public void stockPriceHasIncreasedByGivenPercentage() {
+        String ticker = "NET";
+        OrderFillStatus buyFillStatus = new OrderFillStatus();
+        buyFillStatus.setFillPrice(120);
+        buyFillStatus.setPriceOfUnderlying(120);
+        buyFillStatus.setTicker(ticker);
+        Bar currentOptionPriceBar = new Bar();
+        currentOptionPriceBar.setClose("125");
+
+        StockSellPointHelper stockSellPointHelper = new StockSellPointHelper(ticker);
+
+        boolean hasPriceDroppedBelowThreshhold = TradeWorkerPriceHelper.hasIncreasedByGivenPercentage(buyFillStatus, currentOptionPriceBar, stockSellPointHelper.getAcceptablePriceChangePercent(buyFillStatus.getPriceOfUnderlying(), ticker));
 
         assertTrue(hasPriceDroppedBelowThreshhold);
     }
