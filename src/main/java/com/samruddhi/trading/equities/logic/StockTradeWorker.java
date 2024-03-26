@@ -73,6 +73,7 @@ public class StockTradeWorker extends BaseTradeWorker {
         this.ticker = ticker;
         this.stockOrderProcessor = new StockOrderProcessorImpl(marketDataService);
         this.concurrentCompletedTradeQueue = ConcurrentCompletedTradeQueue.getInstance();
+        this.stockMarketCloseTimeChecker = stockMarketCloseTimeChecker;
     }
 
     public void triggerTermination() {
@@ -88,6 +89,7 @@ public class StockTradeWorker extends BaseTradeWorker {
                     // get  daily stock data for past 50 days
                     List<Bar> pastMinuteBars = marketDataService.getStockDataBars(ticker, "Minute", 1, 50);
                     logger.info("Ticker {} Size of pastMinuteBars {}", ticker, pastMinuteBars.size());
+
 
                     switch (currentStatus) {
                         case NO_STATUS, UPTREND -> {
@@ -251,7 +253,8 @@ public class StockTradeWorker extends BaseTradeWorker {
     private void checkAndPlaceStockSellPoint(List<Bar> minuteBars, List<Bar> pastMinuteBars) throws Exception {
 
         StockSellPointHelper stockSellPointHelper = new StockSellPointHelper(ticker);
-        boolean isStockSellPointReached = stockSellPointHelper.determineIfStockOrCallSellCriteriaMet(recentBuyFillStatus, pastMinuteBars);
+        // Price drop or time past 3.45 earing stock market close for the day, needs Selling.
+        boolean isStockSellPointReached = stockSellPointHelper.determineIfStockOrCallSellCriteriaMet(recentBuyFillStatus, pastMinuteBars) || stockMarketCloseTimeChecker.isCloseToMarketCloseTime();
 
         if (isStockSellPointReached) {
             NextStrikePrice nextStrikePrice = OptionTickerProvider.getNextOptionTicker(ticker, pastMinuteBars.get(pastMinuteBars.size() - 1).getClose(), 'C');

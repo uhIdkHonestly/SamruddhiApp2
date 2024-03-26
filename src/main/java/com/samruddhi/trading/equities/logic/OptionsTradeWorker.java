@@ -284,7 +284,8 @@ public class OptionsTradeWorker extends BaseTradeWorker {
     private void checkAndPlaceCallSellPoint(List<Bar> pastMinuteBars) throws Exception {
 
         CallSellPointHelper callSellPointHelper = new CallSellPointHelper(ticker);
-        boolean isCallSellPointReached = callSellPointHelper.determineIfStockOrCallSellCriteriaMet(recentBuyFillStatus, pastMinuteBars);
+        // Price drop or time past 3.45 earing stock market close for the day, needs Selling all helpd options.
+        boolean isCallSellPointReached = callSellPointHelper.determineIfStockOrCallSellCriteriaMet(recentBuyFillStatus, pastMinuteBars) || stockMarketCloseTimeChecker.isCloseToMarketCloseTime();
 
         if (isCallSellPointReached) {
             NextStrikePrice nextStrikePrice = OptionTickerProvider.getNextOptionTicker(ticker, pastMinuteBars.get(pastMinuteBars.size() - 1).getClose(), 'C');
@@ -309,10 +310,9 @@ public class OptionsTradeWorker extends BaseTradeWorker {
 
     private void checkAndPlacePutsSellPoint(List<Bar> allBars) throws Exception {
         CallSellPointHelper callSellPointHelper = new CallSellPointHelper(ticker);
-        boolean isCallSellPointReached = callSellPointHelper.determineIfPutSellCriteriaMet(recentBuyFillStatus, allBars);
-        // TO DO Fix the logic here
+        boolean isPutSellPointReached = callSellPointHelper.determineIfPutSellCriteriaMet(recentBuyFillStatus, allBars) || stockMarketCloseTimeChecker.isCloseToMarketCloseTime();
 
-        if (isCallSellPointReached) {
+        if (isPutSellPointReached) {
             // We need to sell this call Asap
             NextStrikePrice nextStrikePrice = OptionTickerProvider.getNextOptionTicker(ticker, allBars.get(allBars.size() - 1).getClose(), 'P');
             // CHeck here and other places,  if using Daily bars last price is ok or we need to get price from the latest minute bar...

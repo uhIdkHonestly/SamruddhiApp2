@@ -22,7 +22,7 @@ public class TradingAppScheduler {
         // Trigger the job to run at 9 AM EST
         CronTrigger trigger = TriggerBuilder.newTrigger()
                 .withIdentity("tradingAppTrigger", "group1")
-                .withSchedule(CronScheduleBuilder.dailyAtHourAndMinute(20, 43)
+                .withSchedule(CronScheduleBuilder.dailyAtHourAndMinute(9, 20)
                         .inTimeZone(TimeZone.getTimeZone("America/New_York")))
                 .build();
 
