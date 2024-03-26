@@ -27,8 +27,7 @@ public class GetOrdersByOrderIdServiceImpl implements GetOrdersByOrderIdService 
     public GetOrdersByOrderIdResponse getOrderFillStatus(String orderId) throws GetOrdersException {
         // Replace with your actual API token
         String token = TradeStationAuthImpl.getInstance().getAccessToken().get();
-        int accountId = Integer.parseInt(ConfigManager.getInstance().getProperty("account.id"));
-        String apiUrl = String.format(GET_ORDERS_URL, accountId);
+        String apiUrl = String.format(GET_ORDERS_URL, ConfigManager.getInstance().getProperty("account.id"), orderId);
 
         try {
             HttpResponse<String> response = createHttpRequest(apiUrl, token);

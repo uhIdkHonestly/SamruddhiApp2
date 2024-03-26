@@ -38,7 +38,7 @@ public class OptionOrderProcessorImpl implements OptionOrderProcessor {
 
     private static final int MIN_CALL_QUANTITY = 2;
     private static final int MIN_PUT_QUANTITY = 2;
-    private static final double BID_ASK_MULTIPLIER = 0.7;
+    private static final double BID_ASK_MULTIPLIER = 0.65;
 
     private final StreamingOptionQuoteService streamingOptionQuoteService;
 
@@ -169,7 +169,7 @@ public class OptionOrderProcessorImpl implements OptionOrderProcessor {
             throw new CallOrderException("Error in call order :" + error.getMessage());
         }
 
-        if (placeOrderResponse.getErrors() != null && placeOrderResponse.getOrders().size() > 0) {
+        if (placeOrderResponse.getOrders() != null && placeOrderResponse.getOrders().size() > 0) {
             return placeOrderResponse.getOrders().get(0).getOrderId();
         }
         throw new CallOrderException(String.format("Missing or invalid order Id : for ticker %s ", nextStrikePrice.getFullOptionTicker()));
@@ -177,8 +177,10 @@ public class OptionOrderProcessorImpl implements OptionOrderProcessor {
 
     private double getCallOrderPlacementPrice(OptionData optionData) {
         // TO DO We need better logic here
-        //return (optionData.getAsk() - optionData.getBid()) * BID_ASK_MULTIPLIER;
-        return optionData.getMid();
+        double myPrice = optionData.getBid() + ((optionData.getAsk() - optionData.getBid()) * BID_ASK_MULTIPLIER);
+        logger.info("My option raw price {} limit price is: {} " , myPrice, Math.ceil(myPrice * 10) / 10.0);
+        //return optionData.getMid();
+        return Math.ceil(myPrice * 10) / 10.0;
     }
 
     private double getPutOrderPlacementPrice(OptionData optionData) {

@@ -87,7 +87,7 @@ public class StockOrderProcessorImpl implements StockOrderProcessor {
             throw new CallOrderException("Error in call order :" + error.getMessage());
         }
 
-        if (placeOrderResponse.getErrors() != null && placeOrderResponse.getOrders().size() > 0) {
+        if (placeOrderResponse.getOrders() != null && placeOrderResponse.getOrders().size() > 0) {
             return placeOrderResponse.getOrders().get(0).getOrderId();
         }
         throw new CallOrderException(String.format("Missing or invalid order Id : for ticker %s ", ticker));

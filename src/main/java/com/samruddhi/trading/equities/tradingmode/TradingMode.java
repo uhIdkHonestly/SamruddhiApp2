@@ -12,9 +12,9 @@ public class TradingMode {
         TradingModeEnum tradingModeEnum = getTradingMode();
 
         if (tradingModeEnum == TradingModeEnum.SIMULATED) {
-            return   "https://sim-api.tradestation.com/v3/brokerage/accounts/%s/orders/%S";
+            return   "https://sim-api.tradestation.com/v3/brokerage/accounts/%s/orders/%s";
         } else {
-            return "https://api.tradestation.com/v3/brokerage/accounts/%s/orders/%S";
+            return "https://api.tradestation.com/v3/brokerage/accounts/%s/orders/%s";
         }
     }
 

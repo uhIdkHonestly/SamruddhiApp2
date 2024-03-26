@@ -1,5 +1,8 @@
 package com.samruddhi.trading.equities.logic;
 
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import com.samruddhi.trading.equities.domain.NextStrikePrice;
 import com.samruddhi.trading.equities.domain.getordersbyid.OrderFillStatus;
 import com.samruddhi.trading.equities.orderlimits.OptionTickerProvider;
@@ -19,12 +22,14 @@ public class TestOptionOrderProcessorImpl {
         try {
             NextStrikePrice nextStrikePrice = null;
             String ticker = "PLTR";
-            double price = 24.01;
+            double price = 25;
             char callOrPut = 'C';
 
             MarketDataService marketDataService = new MarketDataServiceImpl();
             OptionsTradeWorker tradeWorker = new OptionsTradeWorker(marketDataService, ticker);
-            tradeWorker.initiateCallOrPutBuying(ticker, price, callOrPut);
+            OrderFillStatus orderFillStatus = tradeWorker.initiateCallOrPutBuying(ticker, price, callOrPut);
+            logger.info("orderFillStatus" + orderFillStatus);
+            assertTrue(orderFillStatus.getStatus() == OptionOrderFillStatus.ORDER_STATUS_ACK || orderFillStatus.getStatus() == OptionOrderFillStatus.ORDER_STATUS_FILLED || orderFillStatus.getStatus() == OptionOrderFillStatus.ORDER_STATUS_OPEN);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -36,7 +41,7 @@ public class TestOptionOrderProcessorImpl {
         try {
             NextStrikePrice nextStrikePrice = null;
             String ticker = "AAPL";
-            double price = 172.16;
+            double price = 170.2;
             char callOrPut = 'P';
 
             MarketDataService marketDataService = new MarketDataServiceImpl();
@@ -44,6 +49,8 @@ public class TestOptionOrderProcessorImpl {
             OrderFillStatus orderFillStatus = tradeWorker.initiateCallOrPutBuying(ticker, price, callOrPut);
             String orderId  = orderFillStatus.getOrderId();
             Assert.assertTrue(!orderId.isEmpty());
+            assertTrue(orderFillStatus.getStatus() == OptionOrderFillStatus.ORDER_STATUS_ACK || orderFillStatus.getStatus() == OptionOrderFillStatus.ORDER_STATUS_FILLED || orderFillStatus.getStatus() == OptionOrderFillStatus.ORDER_STATUS_OPEN);
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -52,8 +59,8 @@ public class TestOptionOrderProcessorImpl {
     @Test
     public void initiateCallSelling() {
         try {
-            String ticker = "AMZN";
-            double lastBarClosePrice = 178.8;
+            String ticker = "PLTR";
+            double lastBarClosePrice = 24.85;
             char callOrPut = 'C';
             NextStrikePrice nextStrikePrice = OptionTickerProvider.getNextOptionTicker(ticker, lastBarClosePrice, callOrPut);
             MarketDataService marketDataService = new MarketDataServiceImpl();
@@ -69,8 +76,8 @@ public class TestOptionOrderProcessorImpl {
     @Test
     public void initiatePutSelling() {
         try {
-            String ticker = "AMZN";
-            double lastBarClosePrice = 178.68;
+            String ticker = "AAPL";
+            double lastBarClosePrice = 170.01;
             char callOrPut = 'P';
             NextStrikePrice nextStrikePrice = OptionTickerProvider.getNextOptionTicker(ticker, lastBarClosePrice, callOrPut);
             MarketDataService marketDataService = new MarketDataServiceImpl();

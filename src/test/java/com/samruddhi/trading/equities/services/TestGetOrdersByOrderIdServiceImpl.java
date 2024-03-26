@@ -2,7 +2,9 @@ package com.samruddhi.trading.equities.services;
 
 import com.samruddhi.trading.equities.domain.getordersbyid.GetOrdersByOrderIdResponse;
 import com.samruddhi.trading.equities.domain.getordersbyid.Order;
+import com.samruddhi.trading.equities.domain.getordersbyid.OrderFillStatus;
 import com.samruddhi.trading.equities.domain.updateorder.UpdateOrderResponse;
+import com.samruddhi.trading.equities.logic.OptionOrderFillStatus;
 import common.JsonParser;
 import org.junit.Test;
 
@@ -99,7 +101,7 @@ public class TestGetOrdersByOrderIdServiceImpl {
             assertTrue(!placeOrderResponse.getOrders().isEmpty());
             Order order = placeOrderResponse.getOrders().get(0);
             assertEquals(order.getAccountId(), "123456782");
-            assertEquals(order.getStatus(), "OPN");
+            assertEquals(order.getStatus(), OptionOrderFillStatus.ORDER_STATUS_OPEN);
             assertEquals(order.getLegs().get(0).getUnderlying(), "MSFT");
             assertEquals(order.getLegs().get(0).getStrikePrice(), "350");
         } catch (Exception e) {

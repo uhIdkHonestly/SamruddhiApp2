@@ -10,6 +10,9 @@ public class OrderFillStatus {
     /** we abort as contrat price is not right */
     public static final OrderFillStatus ORDER_FILL_STATUS_ABORTED = new OrderFillStatus("0", "ABORTED", 0.0, 0, "");
 
+    public static final OrderFillStatus ORDER_FILL_STATUS_ACK = new OrderFillStatus("0", "ACK", 0.0, 0, "");
+
+
     String orderId;
     OptionOrderFillStatus status;
     double fillPrice;
@@ -42,6 +45,7 @@ public class OrderFillStatus {
     }
 
     public OptionOrderFillStatus getStatus() {
+
         return status;
     }
 

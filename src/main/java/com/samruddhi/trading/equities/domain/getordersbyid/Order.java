@@ -2,6 +2,7 @@ package com.samruddhi.trading.equities.domain.getordersbyid;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.samruddhi.trading.equities.logic.OptionOrderFillStatus;
 
 import java.util.Date;
 import java.util.List;
@@ -148,8 +149,8 @@ public class Order {
         this.routing = routing;
     }
 
-    public String getStatus() {
-        return status;
+    public OptionOrderFillStatus getStatus() {
+        return OptionOrderFillStatus.fromString(status);
     }
 
     public void setStatus(String status) {

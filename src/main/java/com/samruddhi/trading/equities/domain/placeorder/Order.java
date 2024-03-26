@@ -12,8 +12,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class Order {
 
     public Order(String message, String orderID) {
-        message = message;
-        message = orderID;
+        this.message = message;
+        this.orderId = orderID;
     }
 
     public String getOrderId() {
