@@ -178,14 +178,15 @@ public class OptionOrderProcessorImpl implements OptionOrderProcessor {
     private double getCallOrderPlacementPrice(OptionData optionData) {
         // TO DO We need better logic here
         double myPrice = optionData.getBid() + ((optionData.getAsk() - optionData.getBid()) * BID_ASK_MULTIPLIER);
-        logger.info("My option raw price {} limit price is: {} " , myPrice, Math.ceil(myPrice * 10) / 10.0);
-        //return optionData.getMid();
+        logger.info("My call order raw price {} adjusted limit price is: {} " , myPrice, Math.ceil(myPrice * 10) / 10.0);
         return Math.ceil(myPrice * 10) / 10.0;
     }
 
     private double getPutOrderPlacementPrice(OptionData optionData) {
-        //return (optionData.getAsk() - optionData.getBid()) * BID_ASK_MULTIPLIER;
-        return optionData.getMid();
+
+        double myPrice = optionData.getBid() + ((optionData.getAsk() - optionData.getBid()) * BID_ASK_MULTIPLIER);
+        logger.info("My put order raw price {} adjusted limit price is: {} ", myPrice, Math.ceil(myPrice * 10) / 10.0);
+        return Math.ceil(myPrice * 10) / 10.0;
     }
 
     public void cancelOrder(String orderId) throws Exception {
