@@ -38,6 +38,16 @@ public class TradingMode {
         }
     }
 
+    public static String replaceOrderUrl() {
+        TradingModeEnum tradingModeEnum = getTradingMode();
+
+        if (tradingModeEnum == TradingModeEnum.SIMULATED) {
+            return   "https://sim-api.tradestation.com/v3/orderexecution/orders/{orderID}";
+        } else {
+            return "https://api.tradestation.com/v3/orderexecution/orders/{orderID}";
+        }
+    }
+
     public static String cancelOrderUrl() {
         TradingModeEnum tradingModeEnum = getTradingMode();
 

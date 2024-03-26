@@ -20,9 +20,10 @@ import java.net.URL;
 public class OrderServiceImpl implements OrderService {
     private static final Logger logger = LoggerFactory.getLogger(OrderServiceImpl.class);
     private String PLACE_ORDER_URL = TradingMode.placeOrderUrl();
+
+    private String REPLACE_ORDER_URL = TradingMode.replaceOrderUrl();
     private String CANCEL_ORDER_URL = TradingMode.cancelOrderUrl();
 
-    // TO DO fix me with proper option ticker and Limit order
     /**
      * {
      * "AccountID": "123456782",
@@ -128,7 +129,7 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
-    public UpdateOrderResponse updateOrder(String orderId, double limitPrice) throws Exception {
+    public UpdateOrderResponse updateOrder(int quantity, String orderId, double limitPrice) throws Exception {
 
         OkHttpClient client = new OkHttpClient();
 
@@ -137,12 +138,12 @@ public class OrderServiceImpl implements OrderService {
         MediaType JSON = MediaType.get("application/json; charset=utf-8");
 
         // Create request body
-        String jsonBody = String.format(PAYLOAD_PUT_STR, orderId, limitPrice);
+        String jsonBody = String.format(PAYLOAD_PUT_STR, quantity, limitPrice);
         RequestBody body = RequestBody.create(jsonBody, JSON);
 
         // Build PUT request
         Request request = new Request.Builder()
-                .url(PLACE_ORDER_URL) // Replace with your URL
+                .url( String.format(REPLACE_ORDER_URL, orderId))
                 .header("Content-Type", "application/json")
                 .header("Authorization", "Bearer " + token)
                 .build();

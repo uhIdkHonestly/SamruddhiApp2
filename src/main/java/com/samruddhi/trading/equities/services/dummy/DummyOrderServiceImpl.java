@@ -36,7 +36,7 @@ public class DummyOrderServiceImpl implements OrderService {
     }
 
     @Override
-    public UpdateOrderResponse updateOrder(String orderId, double limitPrice) throws Exception {
+    public UpdateOrderResponse updateOrder(int quantity, String orderId, double limitPrice) throws Exception {
         return new UpdateOrderResponse("", orderId);
     }
 

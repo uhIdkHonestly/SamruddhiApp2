@@ -205,7 +205,7 @@ public class OptionOrderProcessorImpl implements OptionOrderProcessor {
         while (orderFillStatus.getStatus() == null || orderFillStatus.getStatus() == ORDER_STATUS_OPEN) {
             OptionData optionData = streamingOptionQuoteService.getOptionQuote(nextStrikePrice.getFullOptionTicker());
             double callLimitPrice = getCallOrderPlacementPrice(optionData);
-            UpdateOrderResponse updateOrderResponse = orderService.updateOrder(orderId, callLimitPrice);
+            UpdateOrderResponse updateOrderResponse = orderService.updateOrder(2, orderId, callLimitPrice);
             orderFillStatus = orderFillStatusRetrievalService.checkOrderFillStatus(orderId);
             if (orderFillStatus == ORDER_FILL_STATUS_FAILED) {
                 throw new Exception(String.format("ReplaceCallSellOrder failed  for order %s ticker %s", orderId, ticker));

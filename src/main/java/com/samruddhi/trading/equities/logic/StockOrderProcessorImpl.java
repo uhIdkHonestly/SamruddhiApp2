@@ -22,6 +22,7 @@ import java.util.List;
 
 import static com.samruddhi.trading.equities.domain.getordersbyid.OrderFillStatus.ORDER_FILL_STATUS_FAILED;
 import static com.samruddhi.trading.equities.logic.OptionOrderFillStatus.ORDER_STATUS_OPEN;
+import static com.samruddhi.trading.equities.logic.StockQuantityProvider.getStockBuySellQuantityByTicker;
 
 public class StockOrderProcessorImpl implements StockOrderProcessor {
     private static final Logger logger = LoggerFactory.getLogger(StockOrderProcessorImpl.class);
@@ -66,7 +67,7 @@ public class StockOrderProcessorImpl implements StockOrderProcessor {
         payload.setAccountID(ConfigManager.getInstance().getProperty("account.id"));
         payload.setSymbol(ticker);
         payload.setUnderlyingTicker(ticker);
-        payload.setQuantity(StockQuantityProvider.getStockBuySellQuantityByTicker(ticker, price)); // TO DO this needs to vary by Ticker
+        payload.setQuantity(getStockBuySellQuantityByTicker(ticker, price)); // TO DO this needs to vary by Ticker
         payload.setTradeAction(buyOrSellAction);
         payload.setLimitPrice(stockLimitPrice);
 
@@ -100,8 +101,8 @@ public class StockOrderProcessorImpl implements StockOrderProcessor {
         OrderFillStatus orderFillStatus = null;
         while (orderFillStatus.getStatus() == null || orderFillStatus.getStatus() == ORDER_STATUS_OPEN) {
             List<Bar> minuteBars = marketDataService.getStockDataBars(ticker, "Minute", 1, 1);
-            double callLimitPrice = NumberFormatHelper.formatDecimals(minuteBars.get(0).getClose(), 2);
-            UpdateOrderResponse updateOrderResponse = orderService.updateOrder(orderId, callLimitPrice);
+            double limitPrice = NumberFormatHelper.formatDecimals(minuteBars.get(0).getClose(), 2);
+            UpdateOrderResponse updateOrderResponse = orderService.updateOrder(StockQuantityProvider.getStockBuySellQuantityByTicker(ticker, limitPrice), orderId, limitPrice);
             orderFillStatus = orderFillStatusRetrievalService.checkOrderFillStatus(orderId);
             if (orderFillStatus == ORDER_FILL_STATUS_FAILED) {
                 throw new Exception(String.format("ReplaceCallSellOrder failed  for order %s ticker %s", orderId, ticker));

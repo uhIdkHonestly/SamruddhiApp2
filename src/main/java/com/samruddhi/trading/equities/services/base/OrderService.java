@@ -9,7 +9,7 @@ public interface OrderService {
 
     public PlaceOrderResponse placeOrder(PlaceOrderPayload order) throws Exception;
 
-    public UpdateOrderResponse updateOrder(String orderId, double limitPrice) throws Exception;
+    public UpdateOrderResponse updateOrder(int quantity, String orderId, double limitPrice) throws Exception;
 
     public void cancelOrder(String orderId) throws Exception;
 }
