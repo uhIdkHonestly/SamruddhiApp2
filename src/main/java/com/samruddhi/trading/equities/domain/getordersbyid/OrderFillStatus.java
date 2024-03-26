@@ -19,6 +19,12 @@ public class OrderFillStatus {
 
     LocalTime executionTime = LocalTime.now();
 
+    /** price of Underlying stock at purchase time, mainly need this for buy of Calls or Puts */
+    double priceOfUnderlying;
+    public OrderFillStatus() {
+
+    }
+
     public OrderFillStatus(String orderId, String status, double fillPrice, int fillQuantity, String ticker) {
         this.orderId = orderId;
         this.status = OptionOrderFillStatus.fromString(status);
@@ -82,5 +88,34 @@ public class OrderFillStatus {
 
     public void setExecutionTime(LocalTime executionTime) {
         this.executionTime = executionTime;
+    }
+
+    public String getOptionTicker() {
+        return optionTicker;
+    }
+
+    public void setOptionTicker(String optionTicker) {
+        this.optionTicker = optionTicker;
+    }
+
+    public double getPriceOfUnderlying() {
+        return priceOfUnderlying;
+    }
+
+    public void setPriceOfUnderlying(double priceOfUnderlying) {
+        this.priceOfUnderlying = priceOfUnderlying;
+    }
+
+    @Override
+    public String toString() {
+        return "OrderFillStatus{" +
+                "orderId='" + orderId + '\'' +
+                ", status=" + status +
+                ", fillPrice=" + fillPrice +
+                ", fillQuantity=" + fillQuantity +
+                ", optionTicker='" + optionTicker + '\'' +
+                ", executionTime=" + executionTime +
+                ", priceOfUnderlying=" + priceOfUnderlying +
+                '}';
     }
 }

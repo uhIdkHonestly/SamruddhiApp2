@@ -57,7 +57,7 @@ public class StockOrderProcessorImpl implements StockOrderProcessor {
         orderService.cancelOrder(orderId);
     }
 
-    private OrderFillStatus buyOrSellOrderInternal(String ticker, String buyOrSellAction, double price) throws Exception {
+    private OrderFillStatus buyOrSellOrderInternal(String ticker, String buyOrSellAction, double stockPrice) throws Exception {
         List<Bar> minuteBars = marketDataService.getStockDataBars(ticker, "Minute", 1, 2);
 
         double stockLimitPrice = getLimitOrderPlacementPrice(minuteBars.get(1));
@@ -67,7 +67,7 @@ public class StockOrderProcessorImpl implements StockOrderProcessor {
         payload.setAccountID(ConfigManager.getInstance().getProperty("account.id"));
         payload.setSymbol(ticker);
         payload.setUnderlyingTicker(ticker);
-        payload.setQuantity(getStockBuySellQuantityByTicker(ticker, price)); // TO DO this needs to vary by Ticker
+        payload.setQuantity(getStockBuySellQuantityByTicker(ticker, stockPrice)); // TO DO this needs to vary by Ticker
         payload.setTradeAction(buyOrSellAction);
         payload.setLimitPrice(stockLimitPrice);
 
@@ -76,6 +76,7 @@ public class StockOrderProcessorImpl implements StockOrderProcessor {
         String orderId = getOrderId(placeOrderResponse, ticker);
 
         OrderFillStatus orderFillStatus = orderFillStatusRetrievalService.waitForOrderFill(orderId);
+        orderFillStatus.setPriceOfUnderlying(stockLimitPrice);
         return orderFillStatus;
     }
 

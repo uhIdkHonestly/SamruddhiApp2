@@ -151,7 +151,7 @@ public class StockTradeWorker extends BaseTradeWorker {
             // Initiate an Option buy order if all criteria met
             if (!isStockBuyBasedOnPreviousEmas() && isMacdBullish && isRsiBullish) {
                 orderFillStatus = initiateStockBuying(ticker, allMinuteBars.get(allMinuteBars.size() - 1).getClose());
-                saveBuyStatus(orderFillStatus, true);
+                saveBuyStatus(orderFillStatus);
             }
         } else {
             logger.info("StockTradeWorker - Currently no uptrend detected {} {} {} ", ema5, ema13, ema50);
@@ -197,7 +197,7 @@ public class StockTradeWorker extends BaseTradeWorker {
     /**
      * Save status to indicate that something has been bought (call or put)
      */
-    private void saveBuyStatus(OrderFillStatus orderFillStatus, boolean isCall) throws Exception {
+    private void saveBuyStatus(OrderFillStatus orderFillStatus) throws Exception {
         if (orderFillStatus.getStatus() != ORDER_STATUS_FILLED) {
             currentStatus = CurrentStatus.STOCKS_HELD;
             recentBuyFillStatus = orderFillStatus;
@@ -250,8 +250,8 @@ public class StockTradeWorker extends BaseTradeWorker {
      */
     private void checkAndPlaceStockSellPoint(List<Bar> minuteBars, List<Bar> pastMinuteBars) throws Exception {
 
-        CallSellPointHelper callSellPointHelper = new CallSellPointHelper(ticker);
-        boolean isStockSellPointReached = callSellPointHelper.determineIfStockOrCallSellCriteriaMet(recentBuyFillStatus, pastMinuteBars);
+        StockSellPointHelper stockSellPointHelper = new StockSellPointHelper(ticker);
+        boolean isStockSellPointReached = stockSellPointHelper.determineIfStockOrCallSellCriteriaMet(recentBuyFillStatus, pastMinuteBars);
 
         if (isStockSellPointReached) {
             NextStrikePrice nextStrikePrice = OptionTickerProvider.getNextOptionTicker(ticker, pastMinuteBars.get(pastMinuteBars.size() - 1).getClose(), 'C');

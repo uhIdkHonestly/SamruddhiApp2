@@ -5,9 +5,7 @@ import java.io.InputStream;
 import java.util.Properties;
 
 public class ConfigManager {
-    private final double ACCEPTABLE_PRICE_DROP_PERCENT_UNDER_150 = 0.1;
-    private final double ACCEPTABLE_PRICE_DROP_PERCENT_ABOVE_150 = 0.08;
-    private final double ACCEPTABLE_PRICE_DROP_PERCENT_UNDER_50 = 0.12;
+
     private static ConfigManager instance;
     private final Properties properties;
 
@@ -38,13 +36,5 @@ public class ConfigManager {
 
     /** get acceptable price drop % */
 
-    public double getAcceptablePriceDropPercent(double fillPrice, String ticker) {
-        if(fillPrice < 50)
-            return ACCEPTABLE_PRICE_DROP_PERCENT_UNDER_50;
-        else if( fillPrice < 150)
-            return ACCEPTABLE_PRICE_DROP_PERCENT_UNDER_150;
-        else
-            return ACCEPTABLE_PRICE_DROP_PERCENT_ABOVE_150;
-    }
 }
 

@@ -105,6 +105,7 @@ public class OptionOrderProcessorImpl implements OptionOrderProcessor {
         String orderId = getOrderId(placeOrderResponse, nextStrikePrice, ticker);
 
         OrderFillStatus orderFillStatus = orderFillStatusRetrievalService.waitForOrderFill(orderId);
+        orderFillStatus.setPriceOfUnderlying(price);
         return orderFillStatus;
     }
 
@@ -153,6 +154,7 @@ public class OptionOrderProcessorImpl implements OptionOrderProcessor {
         String orderId = getOrderId(placeOrderResponse, nextStrikePrice, ticker);
 
         OrderFillStatus orderFillStatus = orderFillStatusRetrievalService.waitForOrderFill(orderId);
+        orderFillStatus.setPriceOfUnderlying(price);
         return orderFillStatus;
     }
 

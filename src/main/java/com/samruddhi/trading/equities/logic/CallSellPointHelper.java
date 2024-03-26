@@ -3,59 +3,31 @@ package com.samruddhi.trading.equities.logic;
 import com.samruddhi.trading.equities.config.ConfigManager;
 import com.samruddhi.trading.equities.domain.Bar;
 import com.samruddhi.trading.equities.domain.getordersbyid.OrderFillStatus;
+import com.samruddhi.trading.equities.logic.base.BaseSellPointHelper;
 import com.samruddhi.trading.equities.studies.EMACalculator;
 import com.samruddhi.trading.equities.studies.MACDCalculator;
 import com.samruddhi.trading.equities.studies.RSICalculator;
 
 import java.util.List;
 
-public class CallSellPointHelper {
+public class CallSellPointHelper extends BaseSellPointHelper {
 
     private final String ticker;
 
-    CallSellPointHelper(String ticker) {
+    public CallSellPointHelper(String ticker) {
         this.ticker = ticker;
     }
 
-    public boolean determineIfStockOrCallSellCriteriaMet(OrderFillStatus recentBuyFillStatus, List<Bar> allBars) throws Exception {
-        double ema5 = EMACalculator.calculateEMAs(allBars, 5);
-        double ema13 = EMACalculator.calculateEMAs(allBars, 13);
-        double ema50 = EMACalculator.calculateEMAs(allBars, 50);
+    private final double ACCEPTABLE_PRICE_DROP_PERCENT_ABOVE_150 = 0.01;
+    private final double ACCEPTABLE_PRICE_DROP_PERCENT_UNDER_150 = 0.02;
+    private final double ACCEPTABLE_PRICE_DROP_PERCENT_UNDER_50 = 0.03;
 
-        // calculate and validate MACD
-        List<Bar> bars26Days = allBars.subList(24, allBars.size());
-        double[] macd = MACDCalculator.computeMACD(bars26Days, 12, 26, 9);
-        boolean isMacdBullish = MACDCalculator.isMACDTrendBullish(macd[0], macd[1]);
-
-        // Validate RSI and VWAP in the future,
-        double rsi = RSICalculator.calculateRSI(allBars.subList(36, allBars.size()), 14);
-
-        if ((ema5 < ema50 || ema5 < ema13 || !isMacdBullish) ||
-                (TradeWorkerPriceHelper.hasDroppedByGivenPercentage(recentBuyFillStatus, allBars.get(allBars.size() - 1), ConfigManager.getInstance().getAcceptablePriceDropPercent(recentBuyFillStatus.getFillPrice(), recentBuyFillStatus.getTicker())))) {
-            return true;
-        }
-        return false;
-    }
-
-    public boolean determineIfPutSellCriteriaMet(OrderFillStatus recentBuyFillStatus, List<Bar> allBars) throws Exception {
-        double ema5 = EMACalculator.calculateEMAs(allBars, 5);
-        double ema13 = EMACalculator.calculateEMAs(allBars, 13);
-        double ema50 = EMACalculator.calculateEMAs(allBars, 50);
-
-        // calculate and validate MACD
-        List<Bar> bars26Days = allBars.subList(24, allBars.size());
-        double[] macd = MACDCalculator.computeMACD(bars26Days, 12, 26, 9);
-        boolean isMacdBullish = MACDCalculator.isMACDTrendBullish(macd[0], macd[1]);
-
-        // Validate RSI and VWAP,
-        double rsi = RSICalculator.calculateRSI(allBars.subList(36, allBars.size()), 14);
-        boolean isRsiBullish = rsi > 40; // Fix me
-
-        if ((ema5 > ema50 || ema5 > ema13 || isMacdBullish) ||
-                (TradeWorkerPriceHelper.hasDroppedByGivenPercentage(recentBuyFillStatus, allBars.get(allBars.size() - 1), ConfigManager.getInstance().getAcceptablePriceDropPercent(recentBuyFillStatus.getFillPrice(), recentBuyFillStatus.getTicker())))) {
-            return true;
-        }
-
-        return false;
+    public double getAcceptablePriceDropPercent(double priceOfUnderlying, String ticker) {
+        if(priceOfUnderlying < 50)
+            return  ACCEPTABLE_PRICE_DROP_PERCENT_UNDER_50 ;
+        else if( priceOfUnderlying < 150)
+            return ACCEPTABLE_PRICE_DROP_PERCENT_UNDER_150;
+        else
+            return ACCEPTABLE_PRICE_DROP_PERCENT_ABOVE_150;
     }
 }
