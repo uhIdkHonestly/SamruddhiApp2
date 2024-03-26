@@ -9,9 +9,9 @@ import org.slf4j.LoggerFactory;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.fail;
 
-public class StreamingOptionQuoteServiceImplTest {
+public class TestStreamingOptionQuoteServiceImpl {
 
-    private static final Logger logger = LoggerFactory.getLogger(StreamingOptionQuoteServiceImplTest.class);
+    private static final Logger logger = LoggerFactory.getLogger(TestStreamingOptionQuoteServiceImpl.class);
 
     @Test
     @Ignore
@@ -30,7 +30,7 @@ public class StreamingOptionQuoteServiceImplTest {
     }
 
     public static void main(String[] args) {
-        StreamingOptionQuoteServiceImplTest test = new StreamingOptionQuoteServiceImplTest();
+        TestStreamingOptionQuoteServiceImpl test = new TestStreamingOptionQuoteServiceImpl();
         test.testGetOptionQuote();
     }
 }

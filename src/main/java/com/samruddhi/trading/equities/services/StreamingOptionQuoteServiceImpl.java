@@ -54,10 +54,11 @@ public class StreamingOptionQuoteServiceImpl implements StreamingOptionQuoteServ
                      BufferedReader bufferedReader = new BufferedReader(reader)) {
                     StringBuilder stringBuilder = new StringBuilder();
                     String line;
-                    while ((line = bufferedReader.readLine()) != null) {
+                    if ((line = bufferedReader.readLine()) != null) {
+                        logger.info("Line" + line);
                         // we do this as there was a bug as end of stream was not provided
                         if(line.contains("Heartbeat"))
-                            break;
+                            throw new Exception("Invalid option quote");
                         stringBuilder.append(line);
                     }
                     String optionResponseJson = stringBuilder.toString();

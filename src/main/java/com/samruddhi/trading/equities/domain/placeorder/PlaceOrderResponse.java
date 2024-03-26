@@ -1,10 +1,18 @@
 package com.samruddhi.trading.equities.domain.placeorder;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.List;
 
 public class PlaceOrderResponse {
+    @JsonProperty("Orders")
     private List<Order> Orders;
+    @JsonProperty("Errors")
     private List<Error> Errors;
+
+    public PlaceOrderResponse() {
+
+    }
 
     // Getters and Setters
     public List<Order> getOrders() {

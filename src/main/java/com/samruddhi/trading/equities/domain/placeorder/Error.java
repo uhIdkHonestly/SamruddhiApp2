@@ -1,9 +1,19 @@
 package com.samruddhi.trading.equities.domain.placeorder;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class Error {
+    @JsonProperty("Error")
     private String Error;
+    @JsonProperty("Message")
     private String Message;
+    @JsonProperty("OrderID")
     private String OrderID;
+
+
+    public Error() {
+
+    }
 
     // Getters and Setters
     public String getError() {

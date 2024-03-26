@@ -91,7 +91,7 @@ public class OrderServiceImpl implements OrderService {
                 // Handle other response codes or errors
                 throw new Exception("Buy Request failed with HTTP code: " + response.code() + responseBody);
             }
-            return JsonParser.getPlaceOrderResponse(response.toString());
+            return JsonParser.getPlaceOrderResponse(responseBody);
         } catch (IOException e) {
             e.printStackTrace();
             throw e;

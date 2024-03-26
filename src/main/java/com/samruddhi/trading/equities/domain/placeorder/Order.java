@@ -1,6 +1,7 @@
 package com.samruddhi.trading.equities.domain.placeorder;
 
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
         import java.io.File;
@@ -9,29 +10,37 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 // Order class
 public class Order {
-    private String Message;
-    private String OrderID;
 
     public Order(String message, String orderID) {
-        Message = message;
-        OrderID = orderID;
+        message = message;
+        message = orderID;
     }
 
-    // Getters and Setters
+    public String getOrderId() {
+        return orderId;
+    }
+
+    public void setOrderId(String orderId) {
+        this.orderId = orderId;
+    }
+
+    @JsonProperty("Message")
+    private String message;
+
+    @JsonProperty("OrderID")
+    private String orderId;
+
+    public Order() {
+
+    }
+
+
     public String getMessage() {
-        return Message;
+        return message;
     }
 
     public void setMessage(String message) {
-        Message = message;
-    }
-
-    public String getOrderID() {
-        return OrderID;
-    }
-
-    public void setOrderID(String orderID) {
-        OrderID = orderID;
+        this.message = message;
     }
 }
 
