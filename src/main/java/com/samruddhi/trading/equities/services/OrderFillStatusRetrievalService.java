@@ -17,7 +17,7 @@ import static com.samruddhi.trading.equities.logic.OptionOrderFillStatus.ORDER_S
 public class OrderFillStatusRetrievalService {
 
     private static final Logger logger = LoggerFactory.getLogger(OrderFillStatusRetrievalService.class);
-    private static final int ORDER_FILL_RESPONSE_CHECK_TRIES = 4;
+    private static final int ORDER_FILL_RESPONSE_CHECK_TRIES = 5;
     private static final int ORDER_FILL_RESPONSE_WAIT_TIME = 40; // In millis
 
     private final GetOrdersByOrderIdService getOrdersByOrderIdService;

@@ -1,19 +1,20 @@
-package com.samruddhi.trading.equities.logic;
+package com.samruddhi.trading.equities.logic.base;
 
 import com.samruddhi.pnl.InMemoryPnlTracker;
 import com.samruddhi.trading.equities.domain.TradeWorkerStatus;
+import com.samruddhi.trading.equities.logic.StockTradeWorker;
 import common.StockMarketCloseTimeChecker;
 
 import java.util.concurrent.Callable;
 
 public class BaseTradeWorker implements Callable<TradeWorkerStatus> {
 
-    final int ALLOWED_MAX_LOSS_PER_DAY =  -500;
-    final static int PER_INTERVAL_SLEEP_TIME_REGULAR = 59 * 1000; //  59 seconds
+    protected final int ALLOWED_MAX_LOSS_PER_DAY =  -500;
+    protected final static int PER_INTERVAL_SLEEP_TIME_REGULAR = 59 * 1000; //  59 seconds
 
-    final static int PER_INTERVAL_SLEEP_TIME_AFTER_BUY = 30 * 1000; //  59 seconds
+    protected final static int PER_INTERVAL_SLEEP_TIME_AFTER_BUY = 30 * 1000; //  59 seconds
 
-    final InMemoryPnlTracker inMemoryPnlTracker = InMemoryPnlTracker.getInstance();
+    protected final InMemoryPnlTracker inMemoryPnlTracker = InMemoryPnlTracker.getInstance();
 
     /**
      * What's my curent status ie UPTREND, DOWNTREND, CALL_HELD, PUT_HELD, NO_STATUS,
@@ -21,7 +22,7 @@ public class BaseTradeWorker implements Callable<TradeWorkerStatus> {
      */
    protected CurrentStatus currentStatus;
 
-    enum CurrentStatus {
+    protected enum CurrentStatus {
         UPTREND, DOWNTREND, CALL_HELD, PUT_HELD, STOCKS_HELD, NO_STATUS, NEARING_CLOSE_TIME;
 
     }
@@ -31,11 +32,11 @@ public class BaseTradeWorker implements Callable<TradeWorkerStatus> {
         return null;
     }
 
-    boolean maxPnlLossExceededPerDay() {
+    protected boolean maxPnlLossExceededPerDay() {
         return inMemoryPnlTracker.getTotalPNL() < ALLOWED_MAX_LOSS_PER_DAY;
     }
 
-    StockMarketCloseTimeChecker stockMarketCloseTimeChecker;
+    protected StockMarketCloseTimeChecker stockMarketCloseTimeChecker;
 
 
     /** Before any buy we sleep for around a minute before we get next set of 50 minute Bars

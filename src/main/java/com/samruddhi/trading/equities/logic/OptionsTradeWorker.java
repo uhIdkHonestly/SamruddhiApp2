@@ -5,6 +5,7 @@ import java.util.List;
 import com.samruddhi.trading.equities.domain.FinishedTrade;
 import com.samruddhi.trading.equities.domain.NextStrikePrice;
 import com.samruddhi.trading.equities.domain.getordersbyid.OrderFillStatus;
+import com.samruddhi.trading.equities.logic.base.BaseTradeWorker;
 import com.samruddhi.trading.equities.logic.base.OptionOrderProcessor;
 import com.samruddhi.trading.equities.orderlimits.OptionTickerProvider;
 import com.samruddhi.trading.equities.quartz.ConcurrentCompletedTradeQueue;
@@ -134,7 +135,7 @@ public class OptionsTradeWorker extends BaseTradeWorker {
             }
             // Well if we get repetaed exceptions then we terminate this Thread and Ticker for the day!!!
             if (currentExceptionCount > MAX_ALLOWED_EXCEPTION_COUNT) {
-                logger.info("Terminating the TradeWorker for {} due to repeated {} errors", ticker, currentExceptionCount);
+                logger.info("Terminating the OptionsTradeWorker for the day {} due to repeated {} errors", ticker, currentExceptionCount);
                 isTerminated = true;
             }
         }

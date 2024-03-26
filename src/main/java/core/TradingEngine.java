@@ -2,7 +2,7 @@ package core;
 
 import com.samruddhi.trading.equities.domain.Ticker;
 import com.samruddhi.trading.equities.domain.TradeWorkerStatus;
-import com.samruddhi.trading.equities.logic.BaseTradeWorker;
+import com.samruddhi.trading.equities.logic.base.BaseTradeWorker;
 import com.samruddhi.trading.equities.logic.OptionsTradeWorker;
 import com.samruddhi.trading.equities.logic.StockTradeWorker;
 import com.samruddhi.trading.equities.quartz.TokenRefresherDaemon;

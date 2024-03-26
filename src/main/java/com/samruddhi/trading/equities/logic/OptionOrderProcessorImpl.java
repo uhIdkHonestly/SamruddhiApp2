@@ -55,7 +55,6 @@ public class OptionOrderProcessorImpl implements OptionOrderProcessor {
     @Override
     public OrderFillStatus createCallBuyOrder(NextStrikePrice nextStrikePrice, String ticker, double price) throws Exception {
         logger.info("createCallBuyOrder Order for {}", nextStrikePrice);
-        // Place call BUY order
         return processCallOrder(CALL_BUY_ORDER, nextStrikePrice, ticker, price);
     }
 
@@ -78,7 +77,7 @@ public class OptionOrderProcessorImpl implements OptionOrderProcessor {
         logger.info("entered processCallOrder for {} for {} ticker {} price {}", buyOrSellAction, nextStrikePrice, ticker, price);
         OptionData optionData = streamingOptionQuoteService.getOptionQuote(nextStrikePrice.getFullOptionTicker());
         logger.info("optionData quote {}" , optionData);
-        // Check if below allowed max for Option contract
+        // Check if we are below allowed max contract Value for Option contract
         if (buyOrSellAction == BUY_ORDER) {
             if (!ContractMaxPrice.validateMaxContractPriceByTicker(ticker, optionData.getMid(), price)) {
                 logger.info("Not buying CALL for ticker {} due to high price {}", nextStrikePrice.getFullOptionTicker(), price);
