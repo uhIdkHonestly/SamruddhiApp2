@@ -22,7 +22,7 @@ public class CallSellPointHelper extends BaseSellPointHelper {
     private final double ACCEPTABLE_PRICE_DROP_PERCENT_UNDER_150 = 0.02;
     private final double ACCEPTABLE_PRICE_DROP_PERCENT_UNDER_50 = 0.03;
 
-    public double getAcceptablePriceDropPercent(double priceOfUnderlying, String ticker) {
+    public double getAcceptablePriceChangePercent(double priceOfUnderlying, String ticker) {
         if(priceOfUnderlying < 50)
             return  ACCEPTABLE_PRICE_DROP_PERCENT_UNDER_50 ;
         else if( priceOfUnderlying < 150)

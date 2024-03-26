@@ -14,7 +14,7 @@ public class StockSellPointHelper extends BaseSellPointHelper {
         this.ticker = ticker;
     }
 
-    public double getAcceptablePriceDropPercent(double fillPrice, String ticker) {
+    public double getAcceptablePriceChangePercent(double fillPrice, String ticker) {
         if(fillPrice < 50)
             return ACCEPTABLE_PRICE_DROP_PERCENT_UNDER_50;
         else if( fillPrice < 150)

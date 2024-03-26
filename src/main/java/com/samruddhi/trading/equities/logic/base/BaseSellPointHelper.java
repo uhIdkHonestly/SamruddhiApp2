@@ -1,6 +1,5 @@
 package com.samruddhi.trading.equities.logic.base;
 
-import com.samruddhi.trading.equities.config.ConfigManager;
 import com.samruddhi.trading.equities.domain.Bar;
 import com.samruddhi.trading.equities.domain.getordersbyid.OrderFillStatus;
 import com.samruddhi.trading.equities.logic.TradeWorkerPriceHelper;
@@ -12,7 +11,7 @@ import java.util.List;
 
 public abstract class BaseSellPointHelper {
 
-    public abstract double getAcceptablePriceDropPercent(double fillPrice, String ticker);
+    public abstract double getAcceptablePriceChangePercent(double fillPrice, String ticker);
 
     public boolean determineIfStockOrCallSellCriteriaMet(OrderFillStatus recentBuyFillStatus, List<Bar> allBars) throws Exception {
         double ema5 = EMACalculator.calculateEMAs(allBars, 5);
@@ -28,7 +27,7 @@ public abstract class BaseSellPointHelper {
         double rsi = RSICalculator.calculateRSI(allBars.subList(36, allBars.size()), 14);
 
         if ((ema5 < ema50 || ema5 < ema13 || !isMacdBullish) ||
-                (TradeWorkerPriceHelper.hasDroppedByGivenPercentage(recentBuyFillStatus, allBars.get(allBars.size() - 1),  getAcceptablePriceDropPercent(recentBuyFillStatus.getPriceOfUnderlying(), recentBuyFillStatus.getTicker())))) {
+                (TradeWorkerPriceHelper.hasDroppedByGivenPercentage(recentBuyFillStatus, allBars.get(allBars.size() - 1),  getAcceptablePriceChangePercent(recentBuyFillStatus.getPriceOfUnderlying(), recentBuyFillStatus.getTicker())))) {
             return true;
         }
         return false;
@@ -49,7 +48,7 @@ public abstract class BaseSellPointHelper {
         boolean isRsiBullish = rsi > 40; // Fix me
 
         if ((ema5 > ema50 || ema5 > ema13 || isMacdBullish) ||
-                (TradeWorkerPriceHelper.hasIncreasedByGivenPercentage(recentBuyFillStatus, allBars.get(allBars.size() - 1),  getAcceptablePriceDropPercent(recentBuyFillStatus.getPriceOfUnderlying(), recentBuyFillStatus.getTicker())))) {
+                (TradeWorkerPriceHelper.hasIncreasedByGivenPercentage(recentBuyFillStatus, allBars.get(allBars.size() - 1),  getAcceptablePriceChangePercent(recentBuyFillStatus.getPriceOfUnderlying(), recentBuyFillStatus.getTicker())))) {
             return true;
         }
 
