@@ -18,7 +18,7 @@ public class OrderFillStatusRetrievalService {
 
     private static final Logger logger = LoggerFactory.getLogger(OrderFillStatusRetrievalService.class);
     private static final int ORDER_FILL_RESPONSE_CHECK_TRIES = 4;
-    private static final int ORDER_FILL_RESPONSE_WAIT_TIME = 60; // In millis
+    private static final int ORDER_FILL_RESPONSE_WAIT_TIME = 40; // In millis
 
     private final GetOrdersByOrderIdService getOrdersByOrderIdService;
 
